@@ -5,7 +5,14 @@ import os
 from datetime import datetime
 
 PORT = int(os.environ.get("PORT", "3000"))
-STORE_PATH = os.path.join(os.path.dirname(__file__), "data", "store.json")
+
+# On Render free tier there is no persistent disk, so we store in /tmp
+# which survives the process lifetime but resets on redeploy/spin-down.
+# On a paid tier with a persistent disk mounted at /data, set:
+#   DATA_DIR=/data
+# via an environment variable in the Render dashboard.
+DATA_DIR = os.environ.get("DATA_DIR", "/tmp/menu_data")
+STORE_PATH = os.path.join(DATA_DIR, "store.json")
 
 DEFAULT_STORE = {
     "screens": {
@@ -32,7 +39,7 @@ def now_iso():
 
 
 def ensure_store():
-    os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(STORE_PATH):
         with open(STORE_PATH, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_STORE, f, indent=2)
@@ -71,6 +78,10 @@ def get_or_create_screen(store, screen_id):
 
 
 class Handler(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Cleaner logs on Render
+        print(f"[{self.log_date_time_string()}] {format % args}")
+
     def _send_json(self, status, data):
         body = json.dumps(data).encode("utf-8")
         self.send_response(status)
@@ -248,6 +259,8 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     ensure_store()
+    print(f"Data directory: {DATA_DIR}")
+    print(f"Store path: {STORE_PATH}")
     server = HTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"Python menu backend listening on http://localhost:{PORT}")
+    print(f"Python menu backend listening on http://0.0.0.0:{PORT}")
     server.serve_forever()
