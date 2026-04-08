@@ -77,6 +77,79 @@ DEFAULT_STORE = {
                 "updatedAt": "2026-04-05T00:00:00.000Z",
                 "source": "seed"
             }
+        },
+        "mckenzie-operate": {
+            "prices": {
+                "jerk_wings_s": 0,
+                "jerk_wings_m": 0,
+                "jerk_wings_l": 0,
+                "stew_chicken_s": 0,
+                "stew_chicken_m": 0,
+                "stew_chicken_l": 0,
+                "fried_chicken_s": 0,
+                "fried_chicken_m": 0,
+                "fried_chicken_l": 0,
+                "escovitch_chicken_s": 0,
+                "escovitch_chicken_m": 0,
+                "escovitch_chicken_l": 0,
+                "jerk_chicken_s": 0,
+                "jerk_chicken_m": 0,
+                "jerk_chicken_l": 0,
+                "curry_chicken_s": 0,
+                "curry_chicken_m": 0,
+                "curry_chicken_l": 0,
+                "stew_peas_s": 0,
+                "stew_peas_m": 0,
+                "stew_peas_l": 0,
+                "escovitch_whiting_s": 0,
+                "escovitch_whiting_m": 0,
+                "escovitch_whiting_l": 0,
+                "curry_goat_s": 0,
+                "curry_goat_m": 0,
+                "curry_goat_l": 0,
+                "oxtail_s": 0,
+                "oxtail_m": 0,
+                "oxtail_l": 0,
+                "salmon_s": 0,
+                "salmon_m": 0,
+                "salmon_l": 0,
+                "glazed_salmon_s": 0,
+                "glazed_salmon_m": 0,
+                "glazed_salmon_l": 0,
+                "snapper_s": 0,
+                "snapper_m": 0,
+                "snapper_l": 0,
+                "chicken_jerk_quarter": 0,
+                "chicken_jerk_half": 0,
+                "chicken_fry_quarter": 0,
+                "chicken_fry_half": 0,
+                "chicken_wings_5pc": 0,
+                "side_cabbage_s": 0,
+                "side_cabbage_m": 0,
+                "side_cabbage_l": 0,
+                "side_white_rice_s": 0,
+                "side_white_rice_m": 0,
+                "side_white_rice_l": 0,
+                "side_mac_cheese_s": 0,
+                "side_mac_cheese_m": 0,
+                "side_mac_cheese_l": 0,
+                "side_festival_s": 0,
+                "side_festival_m": 0,
+                "side_festival_l": 0,
+                "side_fried_plantain_s": 0,
+                "side_fried_plantain_m": 0,
+                "side_fried_plantain_l": 0,
+                "side_fried_dumplings_s": 0,
+                "side_fried_dumplings_m": 0,
+                "side_fried_dumplings_l": 0,
+                "side_pasta_s": 0,
+                "side_pasta_m": 0,
+                "side_pasta_l": 0
+            },
+            "meta": {
+                "updatedAt": "2026-04-08T00:00:00.000Z",
+                "source": "seed"
+            }
         }
     }
 }
@@ -312,4 +385,3 @@ if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Python menu backend listening on http://0.0.0.0:{PORT}")
     server.serve_forever()
-
