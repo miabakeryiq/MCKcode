@@ -46,6 +46,8 @@ DEFAULT_STORE = {
                 "porridge_carrot_l": 8,
                 "porridge_cornmeal_s": 5,
                 "porridge_cornmeal_l": 8,
+                "porridge_hominy_s": 5,
+                "porridge_hominy_l": 8,
                 "patty_curry_chicken": 3.5,
                 "patty_beef_spicy": 3.5,
                 "patty_beef_mild": 3.5,
