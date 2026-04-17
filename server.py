@@ -3,17 +3,19 @@ from urllib.parse import urlparse
 import json
 import os
 from datetime import datetime
-
+ 
 PORT = int(os.environ.get("PORT", "3000"))
-
+ 
 # On Render free tier there is no persistent disk, so we store in /tmp
 # which survives the process lifetime but resets on redeploy/spin-down.
 # On a paid tier with a persistent disk mounted at /data, set:
 #   DATA_DIR=/data
 # via an environment variable in the Render dashboard.
 DATA_DIR = os.environ.get("DATA_DIR", "/tmp/menu_data")
-STORE_PATH = os.path.join(DATA_DIR, "store.json")
-
+STORE_PATH       = os.path.join(DATA_DIR, "store.json")
+TOAST_QUEUE_PATH = os.path.join(DATA_DIR, "toast_queue.json")
+TOAST_SECRET     = os.environ.get("TOAST_WEBHOOK_SECRET", "changeme")
+ 
 DEFAULT_STORE = {
     "screens": {
         "mckenzie-main": {
@@ -56,6 +58,7 @@ DEFAULT_STORE = {
                 "patty_spinach": 4.0,
                 "patty_spinach_cheese": 4.5,
                 "patty_coco_bread": 1.5,
+                "side_rice_peas": 4.0,
                 "soup_chicken_s": 5,
                 "soup_chicken_l": 8,
                 "soup_beef_s": 5,
@@ -67,8 +70,8 @@ DEFAULT_STORE = {
                 "soup_cowfoot_s": 5,
                 "soup_cowfoot_l": 8,
                 "bev_dg_soda": 3.0,
-                "bev_snapple": 2.5,
-                "bev_tropical_rhythm": 2.5,
+                "bev_squeezr": 2.5,
+                "bev_tru_juice": 2.5,
                 "bev_canned_soda": 1.0,
                 "bev_water": 1.0,
                 "stew_chicken_s": 7,
@@ -118,8 +121,6 @@ DEFAULT_STORE = {
                 "glazed_salmon_s": 0,
                 "glazed_salmon_m": 0,
                 "glazed_salmon_l": 0,
-                "snapper_s": 0,
-                "snapper_m": 0,
                 "snapper_l": 0,
                 "jerk_pork_s": 0,
                 "jerk_pork_m": 0,
@@ -158,30 +159,43 @@ DEFAULT_STORE = {
         }
     }
 }
-
-
+ 
+ 
 def now_iso():
     return datetime.utcnow().isoformat(timespec="seconds") + "Z"
-
-
+ 
+ 
 def ensure_store():
     os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(STORE_PATH):
         with open(STORE_PATH, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_STORE, f, indent=2)
-
-
+ 
+ 
 def read_store():
     ensure_store()
     with open(STORE_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
+ 
+ 
 def write_store(store):
     with open(STORE_PATH, "w", encoding="utf-8") as f:
         json.dump(store, f, indent=2)
-
-
+ 
+ 
+ 
+def read_toast_queue() -> list:
+    if not os.path.exists(TOAST_QUEUE_PATH):
+        return []
+    with open(TOAST_QUEUE_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+ 
+def write_toast_queue(queue: list):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(TOAST_QUEUE_PATH, "w", encoding="utf-8") as f:
+        json.dump(queue, f, indent=2)
+ 
+ 
 def clean_prices(payload):
     if not isinstance(payload, dict):
         raise ValueError("Body must be a JSON object")
@@ -192,8 +206,8 @@ def clean_prices(payload):
         except Exception:
             raise ValueError(f'Invalid price for "{key}"')
     return out
-
-
+ 
+ 
 def get_or_create_screen(store, screen_id):
     if screen_id not in store["screens"]:
         store["screens"][screen_id] = {
@@ -201,13 +215,13 @@ def get_or_create_screen(store, screen_id):
             "meta": {"updatedAt": now_iso(), "source": "created"}
         }
     return store["screens"][screen_id]
-
-
+ 
+ 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Cleaner logs on Render
         print(f"[{self.log_date_time_string()}] {format % args}")
-
+ 
     def _send_json(self, status, data):
         body = json.dumps(data).encode("utf-8")
         self.send_response(status)
@@ -218,7 +232,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
         self.wfile.write(body)
-
+ 
     def _read_json_body(self):
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length) if length else b"{}"
@@ -226,18 +240,18 @@ class Handler(BaseHTTPRequestHandler):
             return json.loads(raw.decode("utf-8") or "{}")
         except Exception:
             raise ValueError("Invalid JSON body")
-
+ 
     def do_OPTIONS(self):
         self._send_json(200, {"ok": True})
-
+ 
     def do_GET(self):
         store = read_store()
         path = urlparse(self.path).path
         parts = [p for p in path.split("/") if p]
-
+ 
         if path == "/health":
             return self._send_json(200, {"ok": True, "service": "menu-overlay-backend-python", "time": now_iso()})
-
+ 
         if path == "/screens":
             screens = []
             for screen_id, value in store["screens"].items():
@@ -247,14 +261,14 @@ class Handler(BaseHTTPRequestHandler):
                     "updatedAt": value.get("meta", {}).get("updatedAt")
                 })
             return self._send_json(200, {"screens": screens})
-
+ 
         if len(parts) == 3 and parts[0] == "screens" and parts[2] == "prices":
             screen_id = parts[1]
             screen = store["screens"].get(screen_id)
             if not screen:
                 return self._send_json(404, {"error": "Screen not found"})
             return self._send_json(200, screen.get("prices", {}))
-
+ 
         if len(parts) == 3 and parts[0] == "screens" and parts[2] == "menu-state":
             screen_id = parts[1]
             screen = store["screens"].get(screen_id)
@@ -267,15 +281,22 @@ class Handler(BaseHTTPRequestHandler):
                 "labels": screen.get("labels", {}),
                 "meta": screen.get("meta", {})
             })
-
+ 
+        # Toast webhook — fetch pending updates
+        if path == "/webhook/toast/pending":
+            secret = self.headers.get("X-Toast-Secret", "")
+            if secret != TOAST_SECRET:
+                return self._send_json(403, {"error": "Forbidden"})
+            return self._send_json(200, {"updates": read_toast_queue()})
+ 
         return self._send_json(404, {"error": "Not found"})
-
+ 
     def do_POST(self):
         try:
             store = read_store()
             path = urlparse(self.path).path
             parts = [p for p in path.split("/") if p]
-
+ 
             if len(parts) == 3 and parts[0] == "screens" and parts[2] == "prices":
                 screen_id = parts[1]
                 payload = self._read_json_body()
@@ -292,12 +313,12 @@ class Handler(BaseHTTPRequestHandler):
                     "prices": screen["prices"],
                     "meta": screen["meta"]
                 })
-
+ 
             if len(parts) == 3 and parts[0] == "screens" and parts[2] == "menu-state":
                 screen_id = parts[1]
                 payload = self._read_json_body()
                 screen = get_or_create_screen(store, screen_id)
-
+ 
                 if "prices" in payload:
                     screen["prices"] = {**screen.get("prices", {}), **clean_prices(payload["prices"])}
                 if "soldOut" in payload:
@@ -308,7 +329,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(payload["labels"], dict):
                         raise ValueError("labels must be an object")
                     screen["labels"] = payload["labels"]
-
+ 
                 screen["meta"] = {**screen.get("meta", {}), "updatedAt": now_iso(), "source": "menu-state"}
                 write_store(store)
                 return self._send_json(200, {
@@ -321,19 +342,56 @@ class Handler(BaseHTTPRequestHandler):
                         "meta": screen.get("meta", {})
                     }
                 })
-
+ 
+            # Toast webhook — receive price update from Toast bot
+            if path == "/webhook/toast":
+                secret = self.headers.get("X-Toast-Secret", "")
+                if secret != TOAST_SECRET:
+                    return self._send_json(403, {"error": "Forbidden"})
+                payload = self._read_json_body()
+                items = payload.get("items", [])
+                if not isinstance(items, list):
+                    raise ValueError("items must be an array")
+                queue = read_toast_queue()
+                import uuid
+                for item in items:
+                    queue.append({
+                        "id":    str(uuid.uuid4()),
+                        "name":  item.get("name", ""),
+                        "price": float(item.get("price", 0)),
+                        "receivedAt": now_iso()
+                    })
+                write_toast_queue(queue)
+                # Also immediately update McKenzie screen prices
+                screen = get_or_create_screen(store, "mckenzie-main")
+                # Note: name→id mapping lives in OmniSync config.py, not here.
+                # Raw Toast items are queued; OmniSync resolves IDs and pushes platforms.
+                return self._send_json(200, {"ok": True, "queued": len(items)})
+ 
+            # Toast webhook — acknowledge processed updates (remove from queue)
+            if path == "/webhook/toast/ack":
+                secret = self.headers.get("X-Toast-Secret", "")
+                if secret != TOAST_SECRET:
+                    return self._send_json(403, {"error": "Forbidden"})
+                payload = self._read_json_body()
+                ack_ids = set(payload.get("ids", []))
+                queue = read_toast_queue()
+                remaining = [u for u in queue if u.get("id") not in ack_ids]
+                write_toast_queue(remaining)
+                return self._send_json(200, {"ok": True, "removed": len(queue) - len(remaining)})
+ 
             return self._send_json(404, {"error": "Not found"})
         except ValueError as e:
             return self._send_json(400, {"error": str(e)})
         except Exception as e:
             return self._send_json(500, {"error": str(e)})
-
+ 
     def do_PUT(self):
         try:
             store = read_store()
             path = urlparse(self.path).path
             parts = [p for p in path.split("/") if p]
-
+ 
             if len(parts) == 3 and parts[0] == "screens" and parts[2] == "prices":
                 screen_id = parts[1]
                 payload = self._read_json_body()
@@ -349,19 +407,19 @@ class Handler(BaseHTTPRequestHandler):
                     "prices": screen["prices"],
                     "meta": screen["meta"]
                 })
-
+ 
             return self._send_json(404, {"error": "Not found"})
         except ValueError as e:
             return self._send_json(400, {"error": str(e)})
         except Exception as e:
             return self._send_json(500, {"error": str(e)})
-
+ 
     def do_DELETE(self):
         try:
             store = read_store()
             path = urlparse(self.path).path
             parts = [p for p in path.split("/") if p]
-
+ 
             if len(parts) == 4 and parts[0] == "screens" and parts[2] == "prices":
                 screen_id = parts[1]
                 item_id = parts[3]
@@ -377,12 +435,12 @@ class Handler(BaseHTTPRequestHandler):
                     "removed": item_id,
                     "prices": screen.get("prices", {})
                 })
-
+ 
             return self._send_json(404, {"error": "Not found"})
         except Exception as e:
             return self._send_json(500, {"error": str(e)})
-
-
+ 
+ 
 if __name__ == "__main__":
     ensure_store()
     print(f"Data directory: {DATA_DIR}")
