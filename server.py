@@ -13,7 +13,8 @@ PORT = int(os.environ.get("PORT", "3000"))
 # via an environment variable in the Render dashboard.
 DATA_DIR = os.environ.get("DATA_DIR", "/tmp/menu_data")
 STORE_PATH       = os.path.join(DATA_DIR, "store.json")
-TOAST_QUEUE_PATH = os.path.join(DATA_DIR, "toast_queue.json")
+TOAST_QUEUE_PATH  = os.path.join(DATA_DIR, "toast_queue.json")
+OVERLAY_MAPS_DIR  = os.path.join(DATA_DIR, "overlay_maps")
 TOAST_SECRET     = os.environ.get("TOAST_WEBHOOK_SECRET", "changeme")
 
 DEFAULT_STORE = {
@@ -195,6 +196,23 @@ def write_toast_queue(queue: list):
         json.dump(queue, f, indent=2)
 
 
+
+def overlay_map_path(screen_id: str) -> str:
+    return os.path.join(OVERLAY_MAPS_DIR, f"{screen_id}.json")
+
+def read_overlay_map(screen_id: str) -> dict:
+    path = overlay_map_path(screen_id)
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def write_overlay_map(screen_id: str, data: dict):
+    os.makedirs(OVERLAY_MAPS_DIR, exist_ok=True)
+    with open(overlay_map_path(screen_id), "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
 def clean_prices(payload):
     if not isinstance(payload, dict):
         raise ValueError("Body must be a JSON object")
@@ -281,6 +299,14 @@ class Handler(BaseHTTPRequestHandler):
                 "meta": screen.get("meta", {})
             })
 
+        # Overlay map — GET /overlay-map/:screenId
+        if len(parts) == 2 and parts[0] == "overlay-map":
+            screen_id = parts[1]
+            data = read_overlay_map(screen_id)
+            if data is None:
+                return self._send_json(404, {"error": "Overlay map not found. Upload via POST first."})
+            return self._send_json(200, data)
+
         # Toast webhook — fetch pending updates
         if path == "/webhook/toast/pending":
             secret = self.headers.get("X-Toast-Secret", "")
@@ -341,6 +367,35 @@ class Handler(BaseHTTPRequestHandler):
                         "meta": screen.get("meta", {})
                     }
                 })
+
+            # Overlay map — POST /overlay-map/:screenId (upload full map)
+            if len(parts) == 2 and parts[0] == "overlay-map":
+                screen_id = parts[1]
+                payload = self._read_json_body()
+                if not isinstance(payload.get("items"), list):
+                    raise ValueError("Invalid overlay map — must have items array")
+                write_overlay_map(screen_id, payload)
+                return self._send_json(200, {"ok": True, "screenId": screen_id, "itemCount": len(payload["items"])})
+
+            # Overlay map — PATCH /overlay-map/:screenId/item/:itemId (update single item label)
+            if len(parts) == 4 and parts[0] == "overlay-map" and parts[2] == "item":
+                screen_id = parts[1]
+                item_id   = parts[3]
+                payload   = self._read_json_body()
+                data = read_overlay_map(screen_id)
+                if data is None:
+                    return self._send_json(404, {"error": "Overlay map not found"})
+                updated = False
+                for item in data.get("items", []):
+                    if item["id"] == item_id:
+                        if "label" in payload:
+                            item["label"] = str(payload["label"])
+                        updated = True
+                        break
+                if not updated:
+                    return self._send_json(404, {"error": f"Item {item_id!r} not found in map"})
+                write_overlay_map(screen_id, data)
+                return self._send_json(200, {"ok": True, "screenId": screen_id, "itemId": item_id})
 
             # Toast webhook — receive price update from Toast bot
             if path == "/webhook/toast":
