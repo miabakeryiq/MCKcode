@@ -156,6 +156,67 @@ DEFAULT_STORE = {
                 "updatedAt": "2026-04-08T00:00:00.000Z",
                 "source": "seed"
             }
+        },
+        "mckenzie-middle": {
+            "prices": {
+                "middle_curry_chicken_roti": 0,
+                "middle_goat_roti": 0,
+                "middle_oxtail_roti": 0,
+                "middle_jerk_chicken_roti": 0,
+                "middle_vegetable_roti": 0,
+                "middle_roti_skin": 0,
+                "middle_jerk_chicken_mac_s": 0,
+                "middle_jerk_chicken_mac_m": 0,
+                "middle_jerk_chicken_mac_l": 0,
+                "middle_stew_chicken_mac_s": 0,
+                "middle_stew_chicken_mac_m": 0,
+                "middle_stew_chicken_mac_l": 0,
+                "middle_curry_chicken_mac_s": 0,
+                "middle_curry_chicken_mac_m": 0,
+                "middle_curry_chicken_mac_l": 0,
+                "middle_fried_chicken_mac_s": 0,
+                "middle_fried_chicken_mac_m": 0,
+                "middle_fried_chicken_mac_l": 0,
+                "middle_curry_goat_mac_s": 0,
+                "middle_curry_goat_mac_m": 0,
+                "middle_curry_goat_mac_l": 0,
+                "middle_jerk_pork_mac_s": 0,
+                "middle_jerk_pork_mac_m": 0,
+                "middle_jerk_pork_mac_l": 0,
+                "middle_barby_fried_mac_s": 0,
+                "middle_barby_fried_mac_m": 0,
+                "middle_barby_fried_mac_l": 0,
+                "middle_oxtail_mac_s": 0,
+                "middle_oxtail_mac_m": 0,
+                "middle_oxtail_mac_l": 0,
+                "middle_whiting_mac_s": 0,
+                "middle_whiting_mac_m": 0,
+                "middle_whiting_mac_l": 0,
+                "middle_shrimps_mac_s": 0,
+                "middle_shrimps_mac_m": 0,
+                "middle_shrimps_mac_l": 0,
+                "middle_jerk_wings_mac_s": 0,
+                "middle_jerk_wings_mac_m": 0,
+                "middle_jerk_wings_mac_l": 17,
+                "middle_salmon_mac_s": 0,
+                "middle_salmon_mac_m": 0,
+                "middle_salmon_mac_l": 0,
+                "middle_jerk_chicken_pasta": 0,
+                "middle_stew_chicken_pasta": 0,
+                "middle_curry_chicken_pasta": 0,
+                "middle_fried_chicken_pasta": 0,
+                "middle_curry_goat_pasta": 0,
+                "middle_shrimp_pasta": 0,
+                "middle_jerk_pork_pasta": 0,
+                "middle_glazed_salmon_pasta": 0,
+                "middle_oxtail_pasta": 0,
+                "middle_jerk_pork_pasta_2": 0,
+                "middle_snapper_pasta": 0
+            },
+            "meta": {
+                "updatedAt": "2026-08-26T00:00:00.000Z",
+                "source": "seed"
+            }
         }
     }
 }
@@ -166,10 +227,33 @@ def now_iso():
 
 
 def ensure_store():
+    """Create the store if needed and migrate newly-added screens into an existing store."""
     os.makedirs(DATA_DIR, exist_ok=True)
+
     if not os.path.exists(STORE_PATH):
         with open(STORE_PATH, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_STORE, f, indent=2)
+        return
+
+    # Existing Render data survives while the process is running.  When Screen 3
+    # is added to the codebase, an existing store.json will NOT be recreated, so
+    # explicitly migrate the new screen into it.
+    try:
+        with open(STORE_PATH, "r", encoding="utf-8") as f:
+            store = json.load(f)
+    except Exception:
+        # Let read_store surface a useful error rather than silently replacing data.
+        return
+
+    changed = False
+    for screen_id, default_screen in DEFAULT_STORE.get("screens", {}).items():
+        if screen_id not in store.setdefault("screens", {}):
+            store["screens"][screen_id] = default_screen
+            changed = True
+
+    if changed:
+        with open(STORE_PATH, "w", encoding="utf-8") as f:
+            json.dump(store, f, indent=2)
 
 
 def read_store():
