@@ -24,6 +24,9 @@ DEFAULT_STORE = {
                 "beef_liver_s": 7,
                 "beef_liver_m": 12,
                 "beef_liver_l": 15,
+                "stew_chicken_s": 7,
+                "stew_chicken_m": 15,
+                "stew_chicken_l": 15,
                 "ackee_saltfish_s": 11,
                 "ackee_saltfish_m": 15,
                 "ackee_saltfish_l": 18,
@@ -65,7 +68,7 @@ DEFAULT_STORE = {
                 "soup_beef_l": 8,
                 "soup_red_peas_s": 5,
                 "soup_red_peas_l": 8,
-                "soup_goat_s": 10.0,
+                "soup_goat_s": 10,
                 "soup_goat_l": 8,
                 "soup_cowfoot_s": 5,
                 "soup_cowfoot_l": 8,
@@ -73,15 +76,9 @@ DEFAULT_STORE = {
                 "bev_squeezr": 2.5,
                 "bev_tru_juice": 2.5,
                 "bev_canned_soda": 1.0,
-                "bev_water": 1.0,
-                "stew_chicken_s": 7,
-                "stew_chicken_m": 15.0,
-                "stew_chicken_l": 15
+                "bev_water": 1.0
             },
-            "meta": {
-                "updatedAt": "2026-04-05T00:00:00.000Z",
-                "source": "seed"
-            }
+            "meta": {"updatedAt": "2026-04-05T00:00:00.000Z", "source": "seed"}
         },
         "mckenzie-operate": {
             "prices": {
@@ -152,10 +149,7 @@ DEFAULT_STORE = {
                 "side_pasta_m": 0,
                 "side_pasta_l": 0
             },
-            "meta": {
-                "updatedAt": "2026-04-08T00:00:00.000Z",
-                "source": "seed"
-            }
+            "meta": {"updatedAt": "2026-04-08T00:00:00.000Z", "source": "seed"}
         },
         "mckenzie-middle": {
             "prices": {
@@ -197,7 +191,7 @@ DEFAULT_STORE = {
                 "middle_shrimps_mac_l": 0,
                 "middle_jerk_wings_mac_s": 0,
                 "middle_jerk_wings_mac_m": 0,
-                "middle_jerk_wings_mac_l": 17,
+                "middle_jerk_wings_mac_l": 0,
                 "middle_salmon_mac_s": 0,
                 "middle_salmon_mac_m": 0,
                 "middle_salmon_mac_l": 0,
@@ -210,13 +204,9 @@ DEFAULT_STORE = {
                 "middle_jerk_pork_pasta": 0,
                 "middle_glazed_salmon_pasta": 0,
                 "middle_oxtail_pasta": 0,
-                "middle_jerk_pork_pasta_2": 0,
                 "middle_snapper_pasta": 0
             },
-            "meta": {
-                "updatedAt": "2026-08-26T00:00:00.000Z",
-                "source": "seed"
-            }
+            "meta": {"updatedAt": "2026-04-08T00:00:00.000Z", "source": "seed"}
         }
     }
 }
