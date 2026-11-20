@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Overlay Editor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+      color: #f2f2f2;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 16px;
+      border-right: 1px solid rgba(255, 255, 255, .12);
+      overflow: auto;
+      background: #171717;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .hint,
+    .status {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .06);
+      margin-bottom: 14px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+
+    button {
+      border: 0;
+      background: #f5c518;
+      color: #111;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #2a2a2a;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .15);
+    }
+
+    .field {
+      margin: 10px 0;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      opacity: .75;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: #0f0f0f;
+      color: #fff;
+    }
+
+    .list {
+      margin-top: 12px;
+      display: grid;
+      gap: 6px;
+      max-height: 40vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .item {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .04);
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .item.active {
+      border-color: #f5c518;
+      background: rgba(245, 197, 24, .12);
+    }
+
+    .item.selected {
+      border-color: rgba(245, 197, 24, .5);
+      background: rgba(245, 197, 24, .07);
+    }
+
+    .micro {
+      font-size: 12px;
+      opacity: .75;
+      margin-top: 8px;
+    }
+
+    main {
+      overflow: auto;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .stage {
+      position: relative;
+      width: min(760px, calc(100vw - 420px));
+      aspect-ratio: 1080 / 1780;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, .12);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .frame-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      display: block;
+      z-index: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+    }
+
+    .overlay-item {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      min-width: 8px;
+      text-align: center;
+      background: transparent;
+      color: #111;
+      border: 0;
+      cursor: grab;
+      user-select: none;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .overlay-item.active {
+      outline: 1.5px dashed rgba(245, 197, 24, .95);
+      z-index: 6;
+    }
+
+    .overlay-item.selected {
+      outline: 1.5px solid rgba(245, 197, 24, .6);
+      z-index: 5;
+    }
+
+    .overlay-item.active.selected {
+      outline: 2px solid #f5c518;
+      z-index: 6;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      margin-top: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .15);
+      background: #0f0f0f;
+      color: #e8e8e8;
+      padding: 12px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <aside>
+    <h1>Overlay Editor</h1>
+    <div class="hint">
+      <strong>Click</strong> to select · <strong>Shift+Click</strong> multi-select<br>
+      <strong>Drag</strong> any selected item to move the group<br>
+      Arrow keys nudge 1px · Shift+Arrow = 10px<br>
+      <span style="color:#f5c518">Gold underlined</span> = size labels (S M L etc)
+    </div>
+    <div class="toolbar">
+      <button id="copyBtn">Copy JSON</button>
+      <button class="secondary" id="downloadBtn">Download JSON</button>
+      <button class="secondary" id="resetBtn">Reset to file</button>
+    </div>
+    <div class="status" id="saveStatus">Loading…</div>
+    <div class="field">
+      <label>Selected</label>
+      <input id="selectedId" readonly />
+    </div>
+    <div class="field">
+      <label>X</label>
+      <input id="posX" type="number" step="1" />
+    </div>
+    <div class="field">
+      <label>Y</label>
+      <input id="posY" type="number" step="1" />
+    </div>
+    <div class="field">
+      <label>Font size (px) — applies to all selected</label>
+      <input id="fontSize" type="number" step="1" min="8" max="120" />
+    </div>
+    <div class="list" id="list"></div>
+    <textarea id="exportBox" spellcheck="false"></textarea>
+  </aside>
+
+  <main>
+    <div class="stage" id="stage">
+      <img src="./Menu1_test_static.png" alt="" class="frame-img" />
+      <div id="overlay"></div>
+    </div>
+  </main>
+
+  <script>
+    const DEFAULT_MAP = { "canvas": { "width": 1080, "height": 1780 }, "items": [{ "id": "beef_liver_s", "label": "Beef Liver S", "x": 381, "y": 397, "fontSize": 18 }, { "id": "beef_liver_m", "label": "Beef Liver M", "x": 444, "y": 398, "fontSize": 18 }, { "id": "beef_liver_l", "label": "Beef Liver L", "x": 511, "y": 399, "fontSize": 18 }, { "id": "ackee_saltfish_s", "label": "Ackee & Saltfish S", "x": 380, "y": 430, "fontSize": 18 }, { "id": "ackee_saltfish_m", "label": "Ackee & Saltfish M", "x": 444, "y": 429, "fontSize": 18 }, { "id": "ackee_saltfish_l", "label": "Ackee & Saltfish L", "x": 513, "y": 427, "fontSize": 18 }, { "id": "callaloo_saltfish_s", "label": "Callaloo & Saltfish S", "x": 382, "y": 474, "fontSize": 18 }, { "id": "callaloo_saltfish_m", "label": "Callaloo & Saltfish M", "x": 445, "y": 473, "fontSize": 18 }, { "id": "callaloo_saltfish_l", "label": "Callaloo & Saltfish L", "x": 513, "y": 471, "fontSize": 18 }, { "id": "butterbeans_saltfish_s", "label": "Butterbeans & Saltfish S", "x": 383, "y": 516, "fontSize": 18 }, { "id": "butterbeans_saltfish_m", "label": "Butterbeans & Saltfish M", "x": 445, "y": 516, "fontSize": 18 }, { "id": "butterbeans_saltfish_l", "label": "Butterbeans & Saltfish L", "x": 515, "y": 517, "fontSize": 18 }, { "id": "cookup_saltfish_s", "label": "Cook-up Saltfish S", "x": 382, "y": 560, "fontSize": 18 }, { "id": "cookup_saltfish_m", "label": "Cook-up Saltfish M", "x": 446, "y": 559, "fontSize": 18 }, { "id": "cookup_saltfish_l", "label": "Cook-up Saltfish L", "x": 515, "y": 559, "fontSize": 18 }, { "id": "kidney_s", "label": "Kidney S", "x": 382, "y": 599, "fontSize": 18 }, { "id": "kidney_m", "label": "Kidney M", "x": 447, "y": 598, "fontSize": 18 }, { "id": "kidney_l", "label": "Kidney L", "x": 515, "y": 596, "fontSize": 18 }, { "id": "stew_chicken_s", "label": "Stew Chicken S", "x": 381, "y": 639, "fontSize": 18 }, { "id": "stew_chicken_m", "label": "Stew Chicken M", "x": 448, "y": 639, "fontSize": 18 }, { "id": "stew_chicken_l", "label": "Stew Chicken L", "x": 515, "y": 638, "fontSize": 18 }, { "id": "porridge_oatmeal_s", "label": "Oatmeal S", "x": 947, "y": 344, "fontSize": 21 }, { "id": "porridge_oatmeal_l", "label": "Oatmeal L", "x": 1007, "y": 345, "fontSize": 21 }, { "id": "porridge_peanut_s", "label": "Peanut S", "x": 947, "y": 381, "fontSize": 21 }, { "id": "porridge_peanut_l", "label": "Peanut L", "x": 1006, "y": 382, "fontSize": 21 }, { "id": "porridge_plantain_s", "label": "Plantain S", "x": 948, "y": 420, "fontSize": 21 }, { "id": "porridge_plantain_l", "label": "Plantain L", "x": 993, "y": 420, "fontSize": 21 }, { "id": "porridge_carrot_s", "label": "Carrot S", "x": 935, "y": 459, "fontSize": 21 }, { "id": "porridge_carrot_l", "label": "Carrot L", "x": 992, "y": 459, "fontSize": 21 }, { "id": "porridge_cornmeal_s", "label": "Cornmeal S", "x": 947, "y": 307, "fontSize": 21 }, { "id": "porridge_cornmeal_l", "label": "Cornmeal L", "x": 1006, "y": 307, "fontSize": 21 }, { "id": "porridge_hominy_s", "label": "Hominy S", "x": 947, "y": 497, "fontSize": 21 }, { "id": "porridge_hominy_l", "label": "Hominy L", "x": 1006, "y": 497, "fontSize": 21 }, { "id": "patty_curry_chicken", "label": "Curry Chicken", "x": 453, "y": 956, "fontSize": 20 }, { "id": "patty_beef_spicy", "label": "Beef (Spicy)", "x": 454, "y": 1000, "fontSize": 20 }, { "id": "patty_beef_mild", "label": "Beef Mild", "x": 456, "y": 1043, "fontSize": 20 }, { "id": "patty_beefy_cheese", "label": "Beefy Cheese", "x": 456, "y": 1089, "fontSize": 20 }, { "id": "patty_veggie", "label": "Veggie", "x": 459, "y": 1135, "fontSize": 20 }, { "id": "patty_spinach", "label": "Spinach", "x": 458, "y": 1182, "fontSize": 20 }, { "id": "patty_spinach_cheese", "label": "Spinach w/ cheese", "x": 459, "y": 1231, "fontSize": 20 }, { "id": "patty_coco_bread", "label": "Coco Bread", "x": 460, "y": 1277, "fontSize": 20 }, { "id": "soup_chicken_s", "label": "Soup Chicken S", "x": 946, "y": 978, "fontSize": 21 }, { "id": "soup_chicken_l", "label": "Soup Chicken L", "x": 996, "y": 978, "fontSize": 21 }, { "id": "chicken_soup_s", "label": "Chicken Soup S", "x": 946, "y": 1015, "fontSize": 21 }, { "id": "chicken_soup_l", "label": "Chicken Soup L", "x": 996, "y": 1015, "fontSize": 21 }, { "id": "soup_red_peas_s", "label": "Soup Red Peas S", "x": 946, "y": 1051, "fontSize": 21 }, { "id": "soup_sea_food_s", "label": "Sea Food Soup S", "x": 997, "y": 1052, "fontSize": 21 }, { "id": "soup_sea_food_l", "label": "Sea Food Soup L", "x": 998, "y": 1052, "fontSize": 21 }, { "id": "soup_red_peas_l", "label": "Soup Red Peas L", "x": 996, "y": 1051, "fontSize": 21 }, { "id": "soup_goat_s", "label": "Soup Goat S", "x": 945, "y": 1092, "fontSize": 21 }, { "id": "soup_goat_l", "label": "Soup Goat L", "x": 997, "y": 1091, "fontSize": 21 }, { "id": "soup_cowfoot_s", "label": "Soup Cowfoot S", "x": 944, "y": 1131, "fontSize": 21 }, { "id": "soup_cowfoot_l", "label": "Soup Cowfoot L", "x": 997, "y": 1132, "fontSize": 21 }, { "id": "bev_dg_soda", "label": "D & G Soda", "x": 381, "y": 1500, "fontSize": 20 }, { "id": "bev_squeezr", "label": "Squeez'r", "x": 399, "y": 1625, "fontSize": 20 }, { "id": "bev_tru_juice", "label": "Tru-Juice", "x": 399, "y": 1665, "fontSize": 20 }, { "id": "bev_canned_soda", "label": "Canned Soda", "x": 388, "y": 1626, "fontSize": 20 }, { "id": "bev_water", "label": "Water", "x": 389, "y": 1669, "fontSize": 20 }, { "id": "lbl_main_s", "label": "S", "type": "label", "x": 381, "y": 375, "fontSize": 16 }, { "id": "lbl_main_m", "label": "M", "type": "label", "x": 444, "y": 375, "fontSize": 16 }, { "id": "lbl_main_l", "label": "L", "type": "label", "x": 512, "y": 375, "fontSize": 16 }, { "id": "lbl_soup_s", "label": "S", "type": "label", "x": 946, "y": 958, "fontSize": 16 }, { "id": "lbl_soup_l", "label": "L", "type": "label", "x": 996, "y": 958, "fontSize": 16 }, { "id": "lbl_porridge_s", "label": "S", "type": "label", "x": 947, "y": 288, "fontSize": 16 }, { "id": "lbl_porridge_l", "label": "L", "type": "label", "x": 1006, "y": 288, "fontSize": 16 }] };
+
+    const PRICE_VALUES = { "beef_liver_s": 7, "beef_liver_m": 12, "beef_liver_l": 15, "ackee_saltfish_s": 11, "ackee_saltfish_m": 15, "ackee_saltfish_l": 18, "callaloo_saltfish_s": 7, "callaloo_saltfish_m": 12, "callaloo_saltfish_l": 15, "butterbeans_saltfish_s": 7, "butterbeans_saltfish_m": 12, "butterbeans_saltfish_l": 15, "cookup_saltfish_s": 7, "cookup_saltfish_m": 12, "cookup_saltfish_l": 15, "kidney_s": 7, "kidney_m": 12, "kidney_l": 15, "stew_chicken_s": 7, "stew_chicken_m": 12, "stew_chicken_l": 15, "porridge_oatmeal_s": 5, "porridge_oatmeal_l": 8, "porridge_peanut_s": 5, "porridge_peanut_l": 8, "porridge_plantain_s": 5, "porridge_plantain_l": 8, "porridge_carrot_s": 5, "porridge_carrot_l": 8, "porridge_cornmeal_s": 5, "porridge_cornmeal_l": 8, "porridge_hominy_s": 5, "porridge_hominy_l": 8, "patty_curry_chicken": 3.5, "patty_beef_spicy": 3.5, "patty_beef_mild": 3.5, "patty_beefy_cheese": 3.5, "patty_veggie": 3.5, "patty_spinach": 4.0, "patty_spinach_cheese": 4.5, "patty_coco_bread": 1.5, "soup_chicken_s": 5, "soup_chicken_l": 8, "chicken_soup_s": 5, "chicken_soup_l": 8, "soup_sea_food_s": 5, "soup_sea_food_s": 8, "soup_red_peas_s": 5, "soup_red_peas_l": 8, "soup_goat_s": 5, "soup_goat_l": 8, "soup_cowfoot_s": 5, "soup_cowfoot_l": 8, "bev_dg_soda": 3.0, "bev_squeezr": 2.5, "bev_tru_juice": 2.5, "bev_canned_soda": 1.0, "bev_water": 1.0 };
+
+    const STORAGE_KEY = "mckenzie_overlay_editor_main_v5";
+    const CW = 1080, CH = 1780;
+
+    const stage = document.getElementById("stage");
+    const overlay = document.getElementById("overlay");
+    const list = document.getElementById("list");
+    const exportBox = document.getElementById("exportBox");
+    const selectedIdEl = document.getElementById("selectedId");
+    const posXEl = document.getElementById("posX");
+    const posYEl = document.getElementById("posY");
+    const fontSizeEl = document.getElementById("fontSize");
+    const saveStatus = document.getElementById("saveStatus");
+
+    function clone(o) { return JSON.parse(JSON.stringify(o)); }
+    function setStatus(t) { saveStatus.textContent = t; }
+
+    function loadMap() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(DEFAULT_MAP);
+        const p = JSON.parse(raw);
+        return (!p || !Array.isArray(p.items)) ? clone(DEFAULT_MAP) : p;
+      } catch (e) { return clone(DEFAULT_MAP); }
+    }
+
+    const state = { map: loadMap(), activeId: null, selected: new Set() };
+    function getItem(id) { return state.map.items.find(i => i.id === id); }
+
+    function formatPrice(v) {
+      const n = Number(v);
+      if (Number.isNaN(n)) return String(v ?? "");
+      return Number.isInteger(n) ? String(n) : n.toFixed(2);
+    }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+    function renderStage() {
+      overlay.innerHTML = "";
+      for (const item of state.map.items) {
+        const isActive = item.id === state.activeId;
+        const isSelected = state.selected.has(item.id);
+        const el = document.createElement("div");
+        let cls = "overlay-item";
+        if (isSelected) cls += " selected";
+        if (isActive) cls += " active";
+        el.className = cls;
+        el.dataset.id = item.id;
+        el.style.left = (item.x / CW * 100) + "%";
+        el.style.top = (item.y / CH * 100) + "%";
+        el.style.fontSize = (item.fontSize || 16) + "px";
+
+        if (item.type === "label") {
+          el.textContent = item.label;
+          el.style.color = "#f5c518";
+          el.style.textDecoration = "underline";
+        } else {
+          el.textContent = formatPrice(PRICE_VALUES[item.id] ?? "");
+          el.style.color = "#111";
+          el.style.textDecoration = "";
+        }
+
+        el.addEventListener("click", e => {
+          e.stopPropagation();
+          if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            if (state.selected.has(item.id)) state.selected.delete(item.id);
+            else state.selected.add(item.id);
+          } else {
+            state.selected.clear();
+            state.selected.add(item.id);
+          }
+          state.activeId = item.id;
+          renderStage();
+        });
+        attachDrag(el, item.id);
+        overlay.appendChild(el);
+      }
+      renderList(); renderExport(); syncInputs(); queueSave();
+    }
+
+    // ── DRAG — snapshot-based delta so positions never drift ──────────────────
+    function attachDrag(el, id) {
+      let dragging = false;
+      let startX, startY, origins = {};
+      let justDragged = false;
+
+      el.addEventListener("pointerdown", e => {
+        e.stopPropagation();
+        if (!state.selected.has(id)) {
+          state.selected.clear();
+          state.selected.add(id);
+          state.activeId = id;
+          // Update classes without full DOM rebuild to keep pointer capture
+          for (const el2 of overlay.querySelectorAll(".overlay-item")) {
+            el2.classList.remove("selected", "active");
+            if (state.selected.has(el2.dataset.id)) el2.classList.add("selected");
+            if (el2.dataset.id === state.activeId) el2.classList.add("active");
+          }
+          renderList(); syncInputs();
+        } else {
+          state.activeId = id;
+        }
+        dragging = true;
+        el.setPointerCapture(e.pointerId);
+
+        // Snapshot start position in canvas coords
+        const rect = overlay.getBoundingClientRect();
+        startX = ((e.clientX - rect.left) / rect.width) * CW;
+        startY = ((e.clientY - rect.top) / rect.height) * CH;
+        origins = {};
+        for (const sid of state.selected) {
+          const item = getItem(sid);
+          if (item) origins[sid] = { x: item.x, y: item.y };
+        }
+      });
+
+      el.addEventListener("pointermove", e => {
+        if (!dragging) return;
+        const rect = overlay.getBoundingClientRect();
+        const cx = ((e.clientX - rect.left) / rect.width) * CW;
+        const cy = ((e.clientY - rect.top) / rect.height) * CH;
+        const dx = cx - startX;
+        const dy = cy - startY;
+
+        for (const sid of state.selected) {
+          const item = getItem(sid);
+          if (!item || !origins[sid]) continue;
+          item.x = Math.max(0, Math.min(CW, Math.round(origins[sid].x + dx)));
+          item.y = Math.max(0, Math.min(CH, Math.round(origins[sid].y + dy)));
+        }
+
+        // Lightweight DOM update — no rebuild during drag
+        for (const el2 of overlay.querySelectorAll(".overlay-item")) {
+          const item = getItem(el2.dataset.id);
+          if (item) {
+            el2.style.left = (item.x / CW * 100) + "%";
+            el2.style.top = (item.y / CH * 100) + "%";
+          }
+        }
+        syncInputs();
+        queueSave();
+      });
+
+      el.addEventListener("pointerup", () => {
+        if (dragging) { justDragged = true; dragging = false; renderStage(); }
+      });
+      el.addEventListener("pointercancel", () => { dragging = false; });
+    }
+
+    // ── KEYBOARD ──────────────────────────────────────────────────────────────
+    document.addEventListener("keydown", e => {
+      if (!state.selected.size) return;
+      const step = e.shiftKey ? 10 : 1;
+      let dx = 0, dy = 0;
+      if (e.key === "ArrowLeft") dx = -step;
+      else if (e.key === "ArrowRight") dx = step;
+      else if (e.key === "ArrowUp") dy = -step;
+      else if (e.key === "ArrowDown") dy = step;
+      else return;
+      for (const sid of state.selected) {
+        const item = getItem(sid);
+        if (!item) continue;
+        item.x = Math.max(0, Math.min(CW, item.x + dx));
+        item.y = Math.max(0, Math.min(CH, item.y + dy));
+      }
+      renderStage(); e.preventDefault();
+    });
+
+    // ── INPUTS ────────────────────────────────────────────────────────────────
+    function syncInputs() {
+      const item = getItem(state.activeId);
+      const count = state.selected.size;
+      selectedIdEl.value = count > 1 ? `${count} items selected` : (item?.id || "");
+      posXEl.value = count > 1 ? "" : (item?.x ?? "");
+      posYEl.value = count > 1 ? "" : (item?.y ?? "");
+      fontSizeEl.value = item?.fontSize ?? 16;
+    }
+
+    posXEl.addEventListener("input", () => {
+      const item = getItem(state.activeId); if (!item) return;
+      const n = Number(posXEl.value); if (isNaN(n)) return;
+      item.x = Math.max(0, Math.min(CW, Math.round(n)));
+      renderStage();
+    });
+    posYEl.addEventListener("input", () => {
+      const item = getItem(state.activeId); if (!item) return;
+      const n = Number(posYEl.value); if (isNaN(n)) return;
+      item.y = Math.max(0, Math.min(CH, Math.round(n)));
+      renderStage();
+    });
+    fontSizeEl.addEventListener("input", () => {
+      const n = Number(fontSizeEl.value); if (isNaN(n)) return;
+      const size = Math.max(8, Math.min(120, Math.round(n)));
+      for (const sid of state.selected) {
+        const item = getItem(sid);
+        if (item) item.fontSize = size;
+      }
+      renderStage();
+    });
+
+    // ── LIST ──────────────────────────────────────────────────────────────────
+    function renderList() {
+      list.innerHTML = "";
+      for (const item of state.map.items) {
+        const el = document.createElement("div");
+        let cls = "item";
+        if (state.selected.has(item.id)) cls += " selected";
+        if (item.id === state.activeId) cls += " active";
+        el.className = cls;
+        el.textContent = item.type === "label" ? `🏷 ${item.label}` : item.label;
+        el.onclick = (e) => {
+          if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            if (state.selected.has(item.id)) state.selected.delete(item.id);
+            else state.selected.add(item.id);
+          } else {
+            state.selected.clear();
+            state.selected.add(item.id);
+          }
+          state.activeId = item.id;
+          renderStage();
+        };
+        list.appendChild(el);
+      }
+    }
+
+    // ── EXPORT / SAVE ─────────────────────────────────────────────────────────
+    function renderExport() { exportBox.value = JSON.stringify(state.map, null, 2); }
+
+    let saveTimer = null;
+    function queueSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.map));
+        setStatus("Autosaved.");
+      }, 150);
+    }
+
+    exportBox.addEventListener("change", () => {
+      try {
+        const p = JSON.parse(exportBox.value);
+        if (!p || !Array.isArray(p.items)) throw new Error("bad");
+        state.map = p;
+        state.selected.clear();
+        state.activeId = state.map.items[0]?.id ?? null;
+        state.selected.add(state.activeId);
+        renderStage(); setStatus("Loaded from JSON box.");
+      } catch (e) { setStatus("Invalid JSON."); }
+    });
+
+    document.getElementById("copyBtn").onclick = async () => {
+      renderExport();
+      await navigator.clipboard.writeText(exportBox.value);
+      setStatus("JSON copied.");
+    };
+    document.getElementById("downloadBtn").onclick = () => {
+      renderExport();
+      const blob = new Blob([exportBox.value], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "overlay-map.json";
+      a.click(); URL.revokeObjectURL(a.href);
+      setStatus("Downloaded overlay-map.json");
+    };
+    document.getElementById("resetBtn").onclick = () => {
+      localStorage.removeItem(STORAGE_KEY);
+      state.map = clone(DEFAULT_MAP);
+      state.selected.clear();
+      state.activeId = state.map.items[0]?.id ?? null;
+      state.selected.add(state.activeId);
+      renderStage(); setStatus("Reset to file map.");
+    };
+
+    // Click empty canvas = deselect
+    let justDragged = false;
+    overlay.addEventListener("click", () => {
+      if (justDragged) { justDragged = false; return; }
+      state.activeId = null;
+      state.selected.clear();
+      renderStage();
+    });
+
+    window.addEventListener("resize", renderStage);
+
+    setStatus(localStorage.getItem(STORAGE_KEY) ? "Loaded autosaved map." : "Using file map.");
+    state.activeId = state.map.items[0]?.id ?? null;
+    state.selected.add(state.activeId);
+    renderStage();
+  </script>
+</body>
+
+</html>

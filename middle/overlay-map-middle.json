@@ -1,0 +1,403 @@
+{
+  "canvas": {
+    "width": 1080,
+    "height": 1780
+  },
+  "items": [
+    {
+      "id": "middle_curry_chicken_roti",
+      "label": "Curry Chicken Roti",
+      "x": 500,
+      "y": 239,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_goat_roti",
+      "label": "Goat Roti",
+      "x": 500,
+      "y": 286,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_oxtail_roti",
+      "label": "Oxtail Roti",
+      "x": 500,
+      "y": 326,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_chicken_roti",
+      "label": "Jerk Chicken Roti",
+      "x": 500,
+      "y": 372,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_vegetable_roti",
+      "label": "Vegetable Roti",
+      "x": 500,
+      "y": 425,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_roti_skin",
+      "label": "Roti Skin",
+      "x": 500,
+      "y": 471,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_chicken_mac_s",
+      "label": "Jerk Chicken + Mac S",
+      "x": 447,
+      "y": 687,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_chicken_mac_m",
+      "label": "Jerk Chicken + Mac M",
+      "x": 522,
+      "y": 687,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_chicken_mac_l",
+      "label": "Jerk Chicken + Mac L",
+      "x": 630,
+      "y": 687,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_stew_chicken_mac_s",
+      "label": "Stew Chicken + Mac S",
+      "x": 447,
+      "y": 740,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_stew_chicken_mac_m",
+      "label": "Stew Chicken + Mac M",
+      "x": 522,
+      "y": 740,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_stew_chicken_mac_l",
+      "label": "Stew Chicken + Mac L",
+      "x": 630,
+      "y": 740,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_chicken_mac_s",
+      "label": "Curry Chicken + Mac S",
+      "x": 447,
+      "y": 786,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_chicken_mac_m",
+      "label": "Curry Chicken + Mac M",
+      "x": 522,
+      "y": 786,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_chicken_mac_l",
+      "label": "Curry Chicken + Mac L",
+      "x": 630,
+      "y": 786,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_fried_chicken_mac_s",
+      "label": "Fried Chicken + Mac S",
+      "x": 447,
+      "y": 834,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_fried_chicken_mac_m",
+      "label": "Fried Chicken + Mac M",
+      "x": 522,
+      "y": 834,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_fried_chicken_mac_l",
+      "label": "Fried Chicken + Mac L",
+      "x": 630,
+      "y": 834,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_goat_mac_s",
+      "label": "Curry Goat + Mac S",
+      "x": 447,
+      "y": 886,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_goat_mac_m",
+      "label": "Curry Goat + Mac M",
+      "x": 522,
+      "y": 886,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_goat_mac_l",
+      "label": "Curry Goat + Mac L",
+      "x": 630,
+      "y": 886,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_pork_mac_s",
+      "label": "Jerk Pork + Mac S",
+      "x": 447,
+      "y": 936,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_pork_mac_m",
+      "label": "Jerk Pork + Mac M",
+      "x": 522,
+      "y": 936,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_pork_mac_l",
+      "label": "Jerk Pork + Mac L",
+      "x": 630,
+      "y": 936,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_barby_fried_mac_s",
+      "label": "Barby-Fried + Mac S",
+      "x": 447,
+      "y": 989,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_barby_fried_mac_m",
+      "label": "Barby-Fried + Mac M",
+      "x": 522,
+      "y": 989,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_barby_fried_mac_l",
+      "label": "Barby-Fried + Mac L",
+      "x": 630,
+      "y": 989,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_oxtail_mac_s",
+      "label": "Oxtail + Mac S",
+      "x": 447,
+      "y": 1035,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_oxtail_mac_m",
+      "label": "Oxtail + Mac M",
+      "x": 522,
+      "y": 1035,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_oxtail_mac_l",
+      "label": "Oxtail + Mac L",
+      "x": 630,
+      "y": 1035,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_whiting_mac_s",
+      "label": "Whiting + Mac S",
+      "x": 447,
+      "y": 1085,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_whiting_mac_m",
+      "label": "Whiting + Mac M",
+      "x": 522,
+      "y": 1085,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_whiting_mac_l",
+      "label": "Whiting + Mac L",
+      "x": 630,
+      "y": 1085,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_shrimps_mac_s",
+      "label": "Shrimps + Mac S",
+      "x": 447,
+      "y": 1135,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_shrimps_mac_m",
+      "label": "Shrimps + Mac M",
+      "x": 522,
+      "y": 1135,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_shrimps_mac_l",
+      "label": "Shrimps + Mac L",
+      "x": 630,
+      "y": 1135,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_wings_mac_s",
+      "label": "Jerk Wings + Mac S",
+      "x": 447,
+      "y": 1183,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_wings_mac_m",
+      "label": "Jerk Wings + Mac M",
+      "x": 522,
+      "y": 1183,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_wings_mac_l",
+      "label": "Jerk Wings + Mac L",
+      "x": 630,
+      "y": 1183,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_salmon_mac_s",
+      "label": "Salmon + Mac S",
+      "x": 447,
+      "y": 1227,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_salmon_mac_m",
+      "label": "Salmon + Mac M",
+      "x": 522,
+      "y": 1227,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_salmon_mac_l",
+      "label": "Salmon + Mac L",
+      "x": 630,
+      "y": 1227,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_chicken_pasta",
+      "label": "Jerk Chicken + Pasta",
+      "x": 464,
+      "y": 1451,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_stew_chicken_pasta",
+      "label": "Stew Chicken + Pasta",
+      "x": 463,
+      "y": 1502,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_chicken_pasta",
+      "label": "Curry Chicken + Pasta",
+      "x": 463,
+      "y": 1555,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_fried_chicken_pasta",
+      "label": "Fried Chicken + Pasta",
+      "x": 462,
+      "y": 1608,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_curry_goat_pasta",
+      "label": "Curry Goat + Pasta",
+      "x": 463,
+      "y": 1658,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_shrimp_pasta",
+      "label": "Shrimp + Pasta",
+      "x": 463,
+      "y": 1707,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_pork_pasta",
+      "label": "Jerk Pork + Pasta",
+      "x": 1010,
+      "y": 1441,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_glazed_salmon_pasta",
+      "label": "Glazed Salmon + Pasta",
+      "x": 1011,
+      "y": 1499,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_oxtail_pasta",
+      "label": "Oxtail + Pasta",
+      "x": 1012,
+      "y": 1559,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_jerk_pork_pasta_2",
+      "label": "Jerk Pork + Pasta",
+      "x": 1013,
+      "y": 1607,
+      "fontSize": 23
+    },
+    {
+      "id": "middle_snapper_pasta",
+      "label": "Snapper + Pasta",
+      "x": 1015,
+      "y": 1663,
+      "fontSize": 23
+    },
+    {
+      "id": "lbl_middle_meat_s",
+      "label": "S",
+      "x": 447,
+      "y": 645,
+      "fontSize": 20,
+      "type": "label"
+    },
+    {
+      "id": "lbl_middle_meat_m",
+      "label": "M",
+      "x": 522,
+      "y": 645,
+      "fontSize": 20,
+      "type": "label"
+    },
+    {
+      "id": "lbl_middle_meat_l",
+      "label": "L",
+      "x": 630,
+      "y": 645,
+      "fontSize": 20,
+      "type": "label"
+    }
+  ]
+}

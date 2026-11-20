@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>MCK Middleware</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
+    rel="stylesheet">
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface2: #f1f5f9;
+      --border: rgba(0, 0, 0, .1);
+      --gold: #f5c518;
+      --gold-dim: rgba(245, 197, 24, .15);
+      --gold-border: rgba(245, 197, 24, .25);
+      --text: #0f172a;
+      --muted: rgba(15, 23, 42, .45);
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px 16px 100px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 8px 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-logo {
+      height: 160px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .header-text {}
+
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    /* ── SCREEN TABS ── */
+    .screen-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      padding: 13px 10px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .tab.active {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    .tab-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: block;
+    }
+
+    .tab-sub {
+      font-size: 10px;
+      opacity: .7;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-bar .msg {
+      flex: 1;
+    }
+
+    .status-bar .count {
+      font-size: 11px;
+      background: var(--surface2);
+      padding: 4px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-ok {
+      color: var(--green);
+    }
+
+    .status-err {
+      color: var(--red);
+    }
+
+    .status-info {
+      color: var(--gold);
+    }
+
+    /* ── SEARCH + ACTIONS ── */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .search-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      padding: 12px 14px;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .search-wrap input::placeholder {
+      color: var(--muted);
+    }
+
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      border: 0;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn:active {
+      transform: scale(.96);
+      opacity: .85;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-dark {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    /* ── PUSH SELECTED BAR ── */
+    .push-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 16px;
+      background: rgba(10, 10, 10, .95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .push-bar .push-info {
+      flex: 1;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .push-bar .push-info strong {
+      color: var(--text);
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-head {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      padding: 6px 0 8px;
+      margin-top: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+
+    /* ── ITEM CARDS ── */
+    .item-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 8px;
+      transition: border-color .15s;
+    }
+
+    .item-card.selected {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .15s;
+    }
+
+    .card-check.checked {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .card-check.checked::after {
+      content: '✓';
+      font-size: 13px;
+      color: #111;
+      font-weight: 900;
+    }
+
+    .card-name {
+      flex: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .card-id {
+      font-size: 10px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      margin-top: 2px;
+    }
+
+    .card-prices {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .price-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .price-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .price-live {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--green);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .price-live.zero {
+      color: var(--muted);
+    }
+
+    .price-input {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      padding: 10px 12px;
+      width: 100%;
+      -webkit-appearance: none;
+      transition: border-color .15s;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .push-single {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+
+    .push-single:active {
+      transform: scale(.95);
+    }
+
+    .push-single:disabled {
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    /* ── LOADING SPINNER ── */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+      const { useState, useEffect, useMemo, useCallback } = React;
+
+      const DEFAULT_API_BASE = "https://mckcode.onrender.com";
+
+      const ITEMS_BY_SCREEN = {
+        "mckenzie-main": [
+          { "id": "beef_liver_s", "name": "Beef Liver S", "defaultPrice": 7 },
+          { "id": "beef_liver_m", "name": "Beef Liver M", "defaultPrice": 12 },
+          { "id": "beef_liver_l", "name": "Beef Liver L", "defaultPrice": 15 },
+          { "id": "stew_chicken_s", "name": "Stew Chicken S", "defaultPrice": 7 },
+          { "id": "stew_chicken_m", "name": "Stew Chicken M", "defaultPrice": 15 },
+          { "id": "stew_chicken_l", "name": "Stew Chicken L", "defaultPrice": 15 },
+          { "id": "ackee_saltfish_s", "name": "Ackee & Saltfish S", "defaultPrice": 11 },
+          { "id": "ackee_saltfish_m", "name": "Ackee & Saltfish M", "defaultPrice": 15 },
+          { "id": "ackee_saltfish_l", "name": "Ackee & Saltfish L", "defaultPrice": 18 },
+          { "id": "callaloo_saltfish_s", "name": "Callaloo & Saltfish S", "defaultPrice": 7 },
+          { "id": "callaloo_saltfish_m", "name": "Callaloo & Saltfish M", "defaultPrice": 12 },
+          { "id": "callaloo_saltfish_l", "name": "Callaloo & Saltfish L", "defaultPrice": 15 },
+          { "id": "butterbeans_saltfish_s", "name": "Butterbeans & Saltfish S", "defaultPrice": 7 },
+          { "id": "butterbeans_saltfish_m", "name": "Butterbeans & Saltfish M", "defaultPrice": 12 },
+          { "id": "butterbeans_saltfish_l", "name": "Butterbeans & Saltfish L", "defaultPrice": 15 },
+          { "id": "cookup_saltfish_s", "name": "Cook-up Saltfish S", "defaultPrice": 7 },
+          { "id": "cookup_saltfish_m", "name": "Cook-up Saltfish M", "defaultPrice": 12 },
+          { "id": "cookup_saltfish_l", "name": "Cook-up Saltfish L", "defaultPrice": 15 },
+          { "id": "kidney_s", "name": "Kidney S", "defaultPrice": 7 },
+          { "id": "kidney_m", "name": "Kidney M", "defaultPrice": 12 },
+          { "id": "kidney_l", "name": "Kidney L", "defaultPrice": 15 },
+          { "id": "porridge_oatmeal_s", "name": "Oatmeal S", "defaultPrice": 5 },
+          { "id": "porridge_oatmeal_l", "name": "Oatmeal L", "defaultPrice": 8 },
+          { "id": "porridge_peanut_s", "name": "Peanut S", "defaultPrice": 5 },
+          { "id": "porridge_peanut_l", "name": "Peanut L", "defaultPrice": 8 },
+          { "id": "porridge_plantain_s", "name": "Plantain S", "defaultPrice": 5 },
+          { "id": "porridge_plantain_l", "name": "Plantain L", "defaultPrice": 8 },
+          { "id": "porridge_carrot_s", "name": "Carrot S", "defaultPrice": 5 },
+          { "id": "porridge_carrot_l", "name": "Carrot L", "defaultPrice": 8 },
+          { "id": "porridge_cornmeal_s", "name": "Cornmeal S", "defaultPrice": 5 },
+          { "id": "porridge_cornmeal_l", "name": "Cornmeal L", "defaultPrice": 8 },
+          { "id": "porridge_hominy_s", "name": "Hominy Porridge S", "defaultPrice": 5 },
+          { "id": "porridge_hominy_l", "name": "Hominy Porridge L", "defaultPrice": 8 },
+          { "id": "patty_curry_chicken", "name": "Curry Chicken Patty", "defaultPrice": 3.5 },
+          { "id": "patty_beef_spicy", "name": "Beef Patty (Spicy)", "defaultPrice": 3.5 },
+          { "id": "patty_beef_mild", "name": "Beef Patty Mild", "defaultPrice": 3.5 },
+          { "id": "patty_beefy_cheese", "name": "Beefy Cheese Patty", "defaultPrice": 3.5 },
+          { "id": "patty_veggie", "name": "Veggie Patty", "defaultPrice": 3.5 },
+          { "id": "patty_spinach", "name": "Spinach Patty", "defaultPrice": 4.0 },
+          { "id": "patty_spinach_cheese", "name": "Spinach w/ Cheese", "defaultPrice": 4.5 },
+          { "id": "patty_coco_bread", "name": "Coco Bread", "defaultPrice": 1.5 },
+          { "id": "soup_chicken_s", "name": "Soup Chicken S", "defaultPrice": 5 },
+          { "id": "soup_chicken_l", "name": "Soup Chicken L", "defaultPrice": 8 },
+          { "id": "chicken_soup_s", "name": "Chicken Soup S", "defaultPrice": 5 },
+          { "id": "chicken_soup_l", "name": "Chicken Soup L", "defaultPrice": 8 },
+          { "id": "soup_red_peas_s", "name": "Soup Red Peas S", "defaultPrice": 5 },
+          { "id": "soup_red_peas_l", "name": "Soup Red Peas L", "defaultPrice": 8 },
+          // New Edition - Menu Item Seafood 11/20/26  >>
+          { "id": "soup_sea_food_s", "name": "Soup Sea Food S", "defaultPrice": 5 },
+          { "id": "soup_sea_food_l", "name": "Soup Sea Food L", "defaultPrice": 8 },
+          // New Edition - Menu Item Seafood 11/20/26 ^^
+          { "id": "soup_goat_s", "name": "Soup Goat S", "defaultPrice": 10 },
+          { "id": "soup_goat_l", "name": "Soup Goat L", "defaultPrice": 8 },
+          { "id": "soup_cowfoot_s", "name": "Soup Cowfoot S", "defaultPrice": 5 },
+          { "id": "soup_cowfoot_l", "name": "Soup Cowfoot L", "defaultPrice": 8 },
+          { "id": "bev_dg_soda", "name": "D & G Soda", "defaultPrice": 3.0 },
+          { "id": "bev_squeezr", "name": "Squeez'r", "defaultPrice": 2.5 },
+          { "id": "bev_tru_juice", "name": "Tru-Juice", "defaultPrice": 2.5 },
+          { "id": "bev_canned_soda", "name": "Canned Soda", "defaultPrice": 1.0 },
+          { "id": "bev_water", "name": "Water", "defaultPrice": 1.0 },
+          { "id": "bev_mckenzie_lemon_ginger", "name": "Mckenzie Lemon Ginger", "defaultPrice": 1.0 }
+        ],
+        "mckenzie-operate": [
+          { "id": "jerk_wings_s", "name": "Jerk Wings S", "defaultPrice": 0 },
+          { "id": "jerk_wings_m", "name": "Jerk Wings M", "defaultPrice": 0 },
+          { "id": "jerk_wings_l", "name": "Jerk Wings L", "defaultPrice": 0 },
+          { "id": "stew_chicken_s", "name": "Stew Chicken S", "defaultPrice": 0 },
+          { "id": "stew_chicken_m", "name": "Stew Chicken M", "defaultPrice": 0 },
+          { "id": "stew_chicken_l", "name": "Stew Chicken L", "defaultPrice": 0 },
+          { "id": "fried_chicken_s", "name": "Fried Chicken S", "defaultPrice": 0 },
+          { "id": "fried_chicken_m", "name": "Fried Chicken M", "defaultPrice": 0 },
+          { "id": "fried_chicken_l", "name": "Fried Chicken L", "defaultPrice": 0 },
+          { "id": "escovitch_chicken_s", "name": "Escovitch Chicken S", "defaultPrice": 0 },
+          { "id": "escovitch_chicken_m", "name": "Escovitch Chicken M", "defaultPrice": 0 },
+          { "id": "escovitch_chicken_l", "name": "Escovitch Chicken L", "defaultPrice": 0 },
+          { "id": "jerk_chicken_s", "name": "Jerk Chicken S", "defaultPrice": 0 },
+          { "id": "jerk_chicken_m", "name": "Jerk Chicken M", "defaultPrice": 0 },
+          { "id": "jerk_chicken_l", "name": "Jerk Chicken L", "defaultPrice": 0 },
+          { "id": "curry_chicken_s", "name": "Curry Chicken S", "defaultPrice": 0 },
+          { "id": "curry_chicken_m", "name": "Curry Chicken M", "defaultPrice": 0 },
+          { "id": "curry_chicken_l", "name": "Curry Chicken L", "defaultPrice": 0 },
+          { "id": "stew_peas_s", "name": "Stew Peas S", "defaultPrice": 0 },
+          { "id": "stew_peas_m", "name": "Stew Peas M", "defaultPrice": 0 },
+          { "id": "stew_peas_l", "name": "Stew Peas L", "defaultPrice": 0 },
+          { "id": "escovitch_whiting_s", "name": "Escovitch Whiting S", "defaultPrice": 0 },
+          { "id": "escovitch_whiting_m", "name": "Escovitch Whiting M", "defaultPrice": 0 },
+          { "id": "escovitch_whiting_l", "name": "Escovitch Whiting L", "defaultPrice": 0 },
+          { "id": "curry_goat_s", "name": "Curry Goat S", "defaultPrice": 0 },
+          { "id": "curry_goat_m", "name": "Curry Goat M", "defaultPrice": 0 },
+          { "id": "curry_goat_l", "name": "Curry Goat L", "defaultPrice": 0 },
+          { "id": "oxtail_s", "name": "Oxtail S", "defaultPrice": 0 },
+          { "id": "oxtail_m", "name": "Oxtail M", "defaultPrice": 0 },
+          { "id": "oxtail_l", "name": "Oxtail L", "defaultPrice": 0 },
+          { "id": "glazed_salmon_s", "name": "Glazed Salmon S", "defaultPrice": 0 },
+          { "id": "glazed_salmon_m", "name": "Glazed Salmon M", "defaultPrice": 0 },
+          { "id": "glazed_salmon_l", "name": "Glazed Salmon L", "defaultPrice": 0 },
+          { "id": "snapper_l", "name": "Snapper L", "defaultPrice": 0 },
+          { "id": "jerk_pork_s", "name": "Jerk Pork S", "defaultPrice": 0 },
+          { "id": "jerk_pork_m", "name": "Jerk Pork M", "defaultPrice": 0 },
+          { "id": "jerk_pork_l", "name": "Jerk Pork L", "defaultPrice": 0 },
+          { "id": "chicken_jerk_quarter", "name": "Jerk — Quarter", "defaultPrice": 0 },
+          { "id": "chicken_jerk_half", "name": "Jerk — Half", "defaultPrice": 0 },
+          { "id": "chicken_fry_quarter", "name": "Fry — Quarter", "defaultPrice": 0 },
+          { "id": "chicken_fry_half", "name": "Fry — Half", "defaultPrice": 0 },
+          { "id": "chicken_wings_5pc", "name": "Wings (5 pcs.)", "defaultPrice": 0 },
+          { "id": "side_rice_peas_s", "name": "Rice & Peas S", "defaultPrice": 0 },
+          { "id": "side_rice_peas_m", "name": "Rice & Peas M", "defaultPrice": 0 },
+          { "id": "side_rice_peas_l", "name": "Rice & Peas L", "defaultPrice": 0 },
+          { "id": "side_cabbage_s", "name": "Cabbage S", "defaultPrice": 0 },
+          { "id": "side_cabbage_m", "name": "Cabbage M", "defaultPrice": 0 },
+          { "id": "side_cabbage_l", "name": "Cabbage L", "defaultPrice": 0 },
+          { "id": "side_white_rice_s", "name": "White Rice S", "defaultPrice": 0 },
+          { "id": "side_white_rice_m", "name": "White Rice M", "defaultPrice": 0 },
+          { "id": "side_white_rice_l", "name": "White Rice L", "defaultPrice": 0 },
+          { "id": "side_mac_cheese_s", "name": "Mac & Cheese S", "defaultPrice": 0 },
+          { "id": "side_mac_cheese_m", "name": "Mac & Cheese M", "defaultPrice": 0 },
+          { "id": "side_mac_cheese_l", "name": "Mac & Cheese L", "defaultPrice": 0 },
+          { "id": "side_festival_s", "name": "Festival S", "defaultPrice": 0 },
+          { "id": "side_festival_m", "name": "Festival M", "defaultPrice": 0 },
+          { "id": "side_festival_l", "name": "Festival L", "defaultPrice": 0 },
+          { "id": "side_fried_plantain_s", "name": "Fried Plantain S", "defaultPrice": 0 },
+          { "id": "side_fried_plantain_m", "name": "Fried Plantain M", "defaultPrice": 0 },
+          { "id": "side_fried_plantain_l", "name": "Fried Plantain L", "defaultPrice": 0 },
+          { "id": "side_fried_dumplings_s", "name": "Fried Dumplings S", "defaultPrice": 0 },
+          { "id": "side_fried_dumplings_m", "name": "Fried Dumplings M", "defaultPrice": 0 },
+          { "id": "side_fried_dumplings_l", "name": "Fried Dumplings L", "defaultPrice": 0 },
+          { "id": "side_pasta_s", "name": "Mckenzie's Pasta S", "defaultPrice": 0 },
+          { "id": "side_pasta_m", "name": "Mckenzie's Pasta M", "defaultPrice": 0 },
+          { "id": "side_pasta_l", "name": "Mckenzie's Pasta L", "defaultPrice": 0 }
+        ],
+        "mckenzie-middle": [
+          { "id": "middle_curry_chicken_roti", "name": "Curry Chicken Roti", "defaultPrice": 0 },
+          { "id": "middle_goat_roti", "name": "Goat Roti", "defaultPrice": 0 },
+          { "id": "middle_oxtail_roti", "name": "Oxtail Roti", "defaultPrice": 0 },
+          { "id": "middle_jerk_chicken_roti", "name": "Jerk Chicken Roti", "defaultPrice": 0 },
+          { "id": "middle_vegetable_roti", "name": "Vegetable Roti", "defaultPrice": 0 },
+          { "id": "middle_roti_skin", "name": "Roti Skin", "defaultPrice": 0 },
+          { "id": "middle_jerk_chicken_mac_s", "name": "Jerk Chicken + Mac S", "defaultPrice": 0 },
+          { "id": "middle_jerk_chicken_mac_m", "name": "Jerk Chicken + Mac M", "defaultPrice": 0 },
+          { "id": "middle_jerk_chicken_mac_l", "name": "Jerk Chicken + Mac L", "defaultPrice": 0 },
+          { "id": "middle_stew_chicken_mac_s", "name": "Stew Chicken + Mac S", "defaultPrice": 0 },
+          { "id": "middle_stew_chicken_mac_m", "name": "Stew Chicken + Mac M", "defaultPrice": 0 },
+          { "id": "middle_stew_chicken_mac_l", "name": "Stew Chicken + Mac L", "defaultPrice": 0 },
+          { "id": "middle_curry_chicken_mac_s", "name": "Curry Chicken + Mac S", "defaultPrice": 0 },
+          { "id": "middle_curry_chicken_mac_m", "name": "Curry Chicken + Mac M", "defaultPrice": 0 },
+          { "id": "middle_curry_chicken_mac_l", "name": "Curry Chicken + Mac L", "defaultPrice": 0 },
+          { "id": "middle_fried_chicken_mac_s", "name": "Fried Chicken + Mac S", "defaultPrice": 0 },
+          { "id": "middle_fried_chicken_mac_m", "name": "Fried Chicken + Mac M", "defaultPrice": 0 },
+          { "id": "middle_fried_chicken_mac_l", "name": "Fried Chicken + Mac L", "defaultPrice": 0 },
+          { "id": "middle_curry_goat_mac_s", "name": "Curry Goat + Mac S", "defaultPrice": 0 },
+          { "id": "middle_curry_goat_mac_m", "name": "Curry Goat + Mac M", "defaultPrice": 0 },
+          { "id": "middle_curry_goat_mac_l", "name": "Curry Goat + Mac L", "defaultPrice": 0 },
+          { "id": "middle_jerk_pork_mac_s", "name": "Jerk Pork + Mac S", "defaultPrice": 0 },
+          { "id": "middle_jerk_pork_mac_m", "name": "Jerk Pork + Mac M", "defaultPrice": 0 },
+          { "id": "middle_jerk_pork_mac_l", "name": "Jerk Pork + Mac L", "defaultPrice": 0 },
+          { "id": "middle_barby_fried_mac_s", "name": "Barby-Fried + Mac S", "defaultPrice": 0 },
+          { "id": "middle_barby_fried_mac_m", "name": "Barby-Fried + Mac M", "defaultPrice": 0 },
+          { "id": "middle_barby_fried_mac_l", "name": "Barby-Fried + Mac L", "defaultPrice": 0 },
+          { "id": "middle_oxtail_mac_s", "name": "Oxtail + Mac S", "defaultPrice": 0 },
+          { "id": "middle_oxtail_mac_m", "name": "Oxtail + Mac M", "defaultPrice": 0 },
+          { "id": "middle_oxtail_mac_l", "name": "Oxtail + Mac L", "defaultPrice": 0 },
+          { "id": "middle_whiting_mac_s", "name": "Whiting + Mac S", "defaultPrice": 0 },
+          { "id": "middle_whiting_mac_m", "name": "Whiting + Mac M", "defaultPrice": 0 },
+          { "id": "middle_whiting_mac_l", "name": "Whiting + Mac L", "defaultPrice": 0 },
+          { "id": "middle_shrimps_mac_s", "name": "Shrimps + Mac S", "defaultPrice": 0 },
+          { "id": "middle_shrimps_mac_m", "name": "Shrimps + Mac M", "defaultPrice": 0 },
+          { "id": "middle_shrimps_mac_l", "name": "Shrimps + Mac L", "defaultPrice": 0 },
+          { "id": "middle_jerk_wings_mac_s", "name": "Jerk Wings + Mac S", "defaultPrice": 0 },
+          { "id": "middle_jerk_wings_mac_m", "name": "Jerk Wings + Mac M", "defaultPrice": 0 },
+          { "id": "middle_jerk_wings_mac_l", "name": "Jerk Wings + Mac L", "defaultPrice": 0 },
+          { "id": "middle_salmon_mac_s", "name": "Salmon + Mac S", "defaultPrice": 0 },
+          { "id": "middle_salmon_mac_m", "name": "Salmon + Mac M", "defaultPrice": 0 },
+          { "id": "middle_salmon_mac_l", "name": "Salmon + Mac L", "defaultPrice": 0 },
+          { "id": "middle_jerk_chicken_pasta", "name": "Jerk Chicken + Pasta", "defaultPrice": 0 },
+          { "id": "middle_stew_chicken_pasta", "name": "Stew Chicken + Pasta", "defaultPrice": 0 },
+          { "id": "middle_curry_chicken_pasta", "name": "Curry Chicken + Pasta", "defaultPrice": 0 },
+          { "id": "middle_fried_chicken_pasta", "name": "Fried Chicken + Pasta", "defaultPrice": 0 },
+          { "id": "middle_curry_goat_pasta", "name": "Curry Goat + Pasta", "defaultPrice": 0 },
+          { "id": "middle_shrimp_pasta", "name": "Shrimp + Pasta", "defaultPrice": 0 },
+          { "id": "middle_jerk_pork_pasta", "name": "Jerk Pork + Pasta", "defaultPrice": 0 },
+          { "id": "middle_glazed_salmon_pasta", "name": "Glazed Salmon + Pasta", "defaultPrice": 0 },
+          { "id": "middle_oxtail_pasta", "name": "Oxtail + Pasta", "defaultPrice": 0 },
+          { "id": "middle_jerk_pork_pasta_2", "name": "Jerk Pork + Pasta", "defaultPrice": 0 },
+          { "id": "middle_snapper_pasta", "name": "Snapper + Pasta", "defaultPrice": 0 }
+        ]
+      };
+
+      const SCREENS = [
+        { id: "mckenzie-main", label: "Screen 1", sub: "Main Menu" },
+        { id: "mckenzie-operate", label: "Screen 2", sub: "Operate Menu" },
+        { id: "mckenzie-middle", label: "Screen 3", sub: "Middle Menu" }
+      ];
+
+      function money(value) {
+        const n = Number(value);
+        if (Number.isNaN(n)) return "";
+        return Number.isInteger(n) ? String(n) : n.toFixed(2);
+      }
+
+      function makeRows(screenId) {
+        return (ITEMS_BY_SCREEN[screenId] || []).map(item => ({
+          ...item, livePrice: item.defaultPrice, draftPrice: String(item.defaultPrice), selected: false
+        }));
+      }
+
+      function App() {
+        const [apiBase] = useState(DEFAULT_API_BASE);
+        const [screenId, setScreenId] = useState("mckenzie-main");
+        const [rows, setRows] = useState(() => makeRows("mckenzie-main"));
+        const [search, setSearch] = useState("");
+        const [status, setStatus] = useState({ msg: "Ready.", type: "info" });
+        const [loading, setLoading] = useState(false);
+
+        function switchScreen(id) {
+          setScreenId(id);
+          setSearch("");
+          setRows(makeRows(id));
+          setStatus({ msg: "Switching…", type: "info" });
+        }
+
+        const filteredRows = useMemo(() => {
+          const q = search.trim().toLowerCase();
+          if (!q) return rows;
+          return rows.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+        }, [rows, search]);
+
+        const selectedCount = rows.filter(r => r.selected).length;
+
+        function extractPrices(payload) {
+          // The API has existed in both forms: { id: price } and { prices: { id: price } }.
+          // Accept both so the middleware does not silently show defaults when the backend wraps prices.
+          if (!payload || typeof payload !== "object") return {};
+          if (payload.prices && typeof payload.prices === "object") return payload.prices;
+          if (payload.data && payload.data.prices && typeof payload.data.prices === "object") return payload.data.prices;
+          return payload;
+        }
+
+        async function loadFromBackend(sid) {
+          const target = sid || screenId;
+          setLoading(true);
+          try {
+            const res = await fetch(`${apiBase}/screens/${encodeURIComponent(target)}/prices`, { cache: "no-store" });
+            if (!res.ok) throw new Error(`Failed to load prices (${res.status})`);
+            const data = extractPrices(await res.json());
+            let matched = 0;
+            setRows(prev => prev.map(row => {
+              const inc = data[row.id];
+              if (inc === undefined || inc === null || inc === "") return row;
+              matched++;
+              return { ...row, livePrice: inc, draftPrice: String(inc) };
+            }));
+            setStatus({ msg: matched ? `Prices loaded — ${matched} matched.` : "Connected, but no matching prices were returned.", type: matched ? "ok" : "info" });
+          } catch (e) {
+            setStatus({ msg: e.message || "Could not load prices.", type: "err" });
+          } finally { setLoading(false); }
+        }
+
+        async function pushSelected() {
+          const updates = {};
+          rows.forEach(r => { if (r.selected && r.draftPrice !== "") updates[r.id] = Number(r.draftPrice); });
+          if (!Object.keys(updates).length) { setStatus({ msg: "Select items first.", type: "info" }); return; }
+          setLoading(true);
+          try {
+            const res = await fetch(`${apiBase}/screens/${encodeURIComponent(screenId)}/prices`, {
+              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates)
+            });
+            if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || "Push failed"); }
+            const data = extractPrices(await res.json());
+            setRows(prev => prev.map(r => ({
+              ...r,
+              livePrice: data[r.id] ?? r.livePrice,
+              draftPrice: data[r.id] !== undefined ? String(data[r.id]) : r.draftPrice,
+              selected: false
+            })));
+            setStatus({ msg: `Pushed ${Object.keys(updates).length} update(s).`, type: "ok" });
+          } catch (e) { setStatus({ msg: e.message || "Push failed.", type: "err" }); }
+          finally { setLoading(false); }
+        }
+
+        async function pushSingle(row) {
+          setLoading(true);
+          try {
+            const res = await fetch(`${apiBase}/screens/${encodeURIComponent(screenId)}/prices`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ [row.id]: Number(row.draftPrice) })
+            });
+            if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || "Push failed"); }
+            const data = extractPrices(await res.json());
+            setRows(prev => prev.map(r => r.id === row.id ? {
+              ...r, livePrice: data[row.id] ?? r.livePrice, draftPrice: data[row.id] !== undefined ? String(data[row.id]) : r.draftPrice, selected: false
+            } : r));
+            setStatus({ msg: `Updated ${row.name}.`, type: "ok" });
+          } catch (e) { setStatus({ msg: e.message || "Push failed.", type: "err" }); }
+          finally { setLoading(false); }
+        }
+
+        useEffect(() => { loadFromBackend(screenId); }, [screenId]);
+
+        const statusClass = status.type === "ok" ? "status-ok" : status.type === "err" ? "status-err" : "status-info";
+
+        return React.createElement("div", { className: "app" },
+
+          // Header
+          React.createElement("div", { className: "header" },
+            React.createElement("img", { src: "data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAB9KADAAQAAAABAAAB9AAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgB9AH0AwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAQEBAQEBAgEBAgMCAgIDBAMDAwMEBgQEBAQEBgcGBgYGBgYHBwcHBwcHBwgICAgICAkJCQkJCwsLCwsLCwsLC//bAEMBAgICAwMDBQMDBQsIBggLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLC//dAAQAIP/aAAwDAQACEQMRAD8A/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9D/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0f8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//S/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9P/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//1P8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//V/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9b/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//1/8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//Q/wA/+iiigAooooAKKKKACiiigAoor7Q/Zx/Z1svil8Fvil8UtVheX/hEtJWSxCkgG5ZtxJx/djU8Hjn1xWGJxNOhD2lV2V0vvaS/Fkzmoq7Pi+iiitygoorR0nR9V17UI9J0S2ku7qYkRwwqXdiBk4AyTwM0AZ1FFFABRX0P8Efg4nxM8L+NvEd0CIvDejyXkZHGZgcqOo/hVs9fpXhWmaPqmsySQ6VA9w8MbSuEGSqJyzH2FSpptpdCI1IylKKeq3M2iiiqLCiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/0f8AP/ooooAKKKKACiiigAooooAntbd7u6jtIvvSsEGfVjiv3+/4JaWEfhFviF+zr8SrMxXbSItzBJgK8U6FOp/hIGQQOhFfgFaXBtLuK6XrE6v/AN8nNf0paz4X1Hx3o3hr9tX4CB9S1Wz02GDXdMtyTJf2CJg+WvJaaEj7vcDHavkuLpqWFWGm+VVNFLtJNOK+dmvU8nN6jVJU1pzbPz3X3n4RftOfBLXf2fvjTrfw41i3eGK2nd7Nm6S2zkmNge/HB9wa8Cr+j/8AaS+H3gP9vD4O2Ou+FrmK18XaPEzWNxMNpuYwBvtpixyjA8AdnB6EkD+dLWNI1LQNUuNG1iFre6tZGiljcYKuhwQfoa9LIczli8MvbK1WOkl5rqvJ/wDANsux0cTT7SWjXZm9c+F9Q8OLo+o+MdNvbWy1RRdROyeWLi03bS8JYYbkMN3IzXf6T8IPiPrng/xF8bvhzpd+PC/hy6ihlved8Iui6xgsgwThcORwM89RXe/DX4bfGj9oDwF4g8UW+qW17pXwz0RnFvql2gMNpK+zy7WOVuoLlxtAwRx8xAPovwu/bY/af+Fv7Puvfs8+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CiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0v8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//T/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9T/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//1f8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//W/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9f/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0P8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//R/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9L/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//0/8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//U/wA/+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//9X/AD/6KKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//1v8AP/ooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP//Z", alt: "McKenzie's Kitchen", className: "header-logo" }),
+            React.createElement("div", { className: "header-text" },
+              React.createElement("h1", null, "MCK Middleware"),
+              React.createElement("p", null, "Push price updates to overlay screens")
+            )
+          ),
+
+          // Screen tabs
+          React.createElement("div", { className: "screen-tabs" },
+            SCREENS.map(s => React.createElement("button", {
+              key: s.id,
+              className: "tab" + (screenId === s.id ? " active" : ""),
+              onClick: () => switchScreen(s.id)
+            },
+              React.createElement("span", { className: "tab-label" }, s.label),
+              React.createElement("span", { className: "tab-sub" }, s.sub)
+            ))
+          ),
+
+          // Status bar
+          React.createElement("div", { className: "status-bar" },
+            React.createElement("div", { className: "msg " + statusClass },
+              loading && React.createElement("span", { className: "spinner" }),
+              status.msg
+            ),
+            React.createElement("div", { className: "count" }, `${rows.length} items`)
+          ),
+
+          // Search + reload
+          React.createElement("div", { className: "controls" },
+            React.createElement("div", { className: "search-wrap" },
+              React.createElement("input", {
+                type: "search",
+                placeholder: "Search items…",
+                value: search,
+                onChange: e => setSearch(e.target.value)
+              })
+            ),
+            React.createElement("button", {
+              className: "btn btn-ghost",
+              onClick: () => loadFromBackend(),
+              disabled: loading
+            }, "↺ Reload")
+          ),
+
+          // Item cards
+          filteredRows.length === 0
+            ? React.createElement("div", { className: "empty" },
+              React.createElement("div", { className: "empty-icon" }, "🔍"),
+              "No items match your search"
+            )
+            : filteredRows.map(row =>
+              React.createElement("div", {
+                key: row.id,
+                className: "item-card" + (row.selected ? " selected" : "")
+              },
+                React.createElement("div", { className: "card-top" },
+                  React.createElement("div", {
+                    className: "card-check" + (row.selected ? " checked" : ""),
+                    onClick: () => setRows(prev => prev.map(r => r.id === row.id ? { ...r, selected: !r.selected } : r))
+                  }),
+                  React.createElement("div", null,
+                    React.createElement("div", { className: "card-name" }, row.name),
+                    React.createElement("div", { className: "card-id" }, row.id)
+                  )
+                ),
+                React.createElement("div", { className: "card-prices" },
+                  React.createElement("div", { className: "price-field" },
+                    React.createElement("div", { className: "price-label" }, "Live"),
+                    React.createElement("div", { className: "price-live" + (Number(row.livePrice) === 0 ? " zero" : "") },
+                      "$" + money(row.livePrice)
+                    )
+                  ),
+                  React.createElement("div", { className: "price-field" },
+                    React.createElement("div", { className: "price-label" }, "New price"),
+                    React.createElement("input", {
+                      className: "price-input",
+                      type: "number",
+                      inputMode: "decimal",
+                      value: row.draftPrice,
+                      onChange: e => setRows(prev => prev.map(r => r.id === row.id ? { ...r, draftPrice: e.target.value } : r))
+                    })
+                  ),
+                  React.createElement("button", {
+                    className: "push-single",
+                    onClick: () => pushSingle(row),
+                    disabled: loading || row.draftPrice === ""
+                  }, "Push")
+                )
+              )
+            ),
+
+          // Fixed push bar at bottom
+          selectedCount > 0 && React.createElement("div", { className: "push-bar" },
+            React.createElement("div", { className: "push-info" },
+              React.createElement("strong", null, selectedCount),
+              ` item${selectedCount > 1 ? "s" : ""} selected`
+            ),
+            React.createElement("button", {
+              className: "btn btn-green",
+              onClick: pushSelected,
+              disabled: loading
+            }, "Push All Selected")
+          )
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+    });
+  </script>
+</body>
+
+</html>

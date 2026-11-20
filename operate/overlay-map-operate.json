@@ -1,0 +1,534 @@
+{
+  "canvas": {
+    "width": 1080,
+    "height": 1780
+  },
+  "items": [
+    {
+      "id": "jerk_wings_s",
+      "label": "Jerk Wings S",
+      "x": 347,
+      "y": 378,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_wings_m",
+      "label": "Jerk Wings M",
+      "x": 417,
+      "y": 378,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_wings_l",
+      "label": "Jerk Wings L",
+      "x": 487,
+      "y": 378,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_pork_s",
+      "label": "Jerk Pork S",
+      "x": 347,
+      "y": 423,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_pork_m",
+      "label": "Jerk Pork M",
+      "x": 417,
+      "y": 423,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_pork_l",
+      "label": "Jerk Pork L",
+      "x": 487,
+      "y": 423,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_chicken_s",
+      "label": "Stew Chicken S",
+      "x": 347,
+      "y": 515,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_chicken_m",
+      "label": "Stew Chicken M",
+      "x": 417,
+      "y": 515,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_chicken_l",
+      "label": "Stew Chicken L",
+      "x": 487,
+      "y": 515,
+      "fontSize": 23
+    },
+    {
+      "id": "fried_chicken_s",
+      "label": "Fried Chicken S",
+      "x": 347,
+      "y": 558,
+      "fontSize": 23
+    },
+    {
+      "id": "fried_chicken_m",
+      "label": "Fried Chicken M",
+      "x": 417,
+      "y": 558,
+      "fontSize": 23
+    },
+    {
+      "id": "fried_chicken_l",
+      "label": "Fried Chicken L",
+      "x": 487,
+      "y": 558,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_chicken_s",
+      "label": "Escovitch Chicken S",
+      "x": 347,
+      "y": 609,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_chicken_m",
+      "label": "Escovitch Chicken M",
+      "x": 417,
+      "y": 609,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_chicken_l",
+      "label": "Escovitch Chicken L",
+      "x": 487,
+      "y": 609,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_chicken_s",
+      "label": "Jerk Chicken S",
+      "x": 347,
+      "y": 467,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_chicken_m",
+      "label": "Jerk Chicken M",
+      "x": 417,
+      "y": 467,
+      "fontSize": 23
+    },
+    {
+      "id": "jerk_chicken_l",
+      "label": "Jerk Chicken L",
+      "x": 487,
+      "y": 467,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_chicken_s",
+      "label": "Curry Chicken S",
+      "x": 347,
+      "y": 720,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_chicken_m",
+      "label": "Curry Chicken M",
+      "x": 417,
+      "y": 720,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_chicken_l",
+      "label": "Curry Chicken L",
+      "x": 487,
+      "y": 720,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_peas_s",
+      "label": "Stew Peas S",
+      "x": 347,
+      "y": 770,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_peas_m",
+      "label": "Stew Peas M",
+      "x": 417,
+      "y": 770,
+      "fontSize": 23
+    },
+    {
+      "id": "stew_peas_l",
+      "label": "Stew Peas L",
+      "x": 487,
+      "y": 770,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_whiting_s",
+      "label": "Escovitch Whiting S",
+      "x": 347,
+      "y": 835,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_whiting_m",
+      "label": "Escovitch Whiting M",
+      "x": 417,
+      "y": 835,
+      "fontSize": 23
+    },
+    {
+      "id": "escovitch_whiting_l",
+      "label": "Escovitch Whiting L",
+      "x": 487,
+      "y": 835,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_goat_s",
+      "label": "Curry Goat S",
+      "x": 347,
+      "y": 904,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_goat_m",
+      "label": "Curry Goat M",
+      "x": 417,
+      "y": 904,
+      "fontSize": 23
+    },
+    {
+      "id": "curry_goat_l",
+      "label": "Curry Goat L",
+      "x": 487,
+      "y": 904,
+      "fontSize": 23
+    },
+    {
+      "id": "oxtail_s",
+      "label": "Oxtail S",
+      "x": 347,
+      "y": 954,
+      "fontSize": 23
+    },
+    {
+      "id": "oxtail_m",
+      "label": "Oxtail M",
+      "x": 417,
+      "y": 954,
+      "fontSize": 23
+    },
+    {
+      "id": "oxtail_l",
+      "label": "Oxtail L",
+      "x": 487,
+      "y": 954,
+      "fontSize": 23
+    },
+    {
+      "id": "glazed_salmon_s",
+      "label": "Glazed Salmon S",
+      "x": 347,
+      "y": 1010,
+      "fontSize": 23
+    },
+    {
+      "id": "glazed_salmon_m",
+      "label": "Glazed Salmon M",
+      "x": 417,
+      "y": 1010,
+      "fontSize": 23
+    },
+    {
+      "id": "glazed_salmon_l",
+      "label": "Glazed Salmon L",
+      "x": 487,
+      "y": 1010,
+      "fontSize": 23
+    },
+    {
+      "id": "snapper_l",
+      "label": "Snapper L",
+      "x": 487,
+      "y": 1062,
+      "fontSize": 23
+    },
+    {
+      "id": "chicken_jerk_quarter",
+      "label": "Jerk Quarter",
+      "x": 327,
+      "y": 1432,
+      "fontSize": 23
+    },
+    {
+      "id": "chicken_jerk_half",
+      "label": "Jerk Half",
+      "x": 470,
+      "y": 1431,
+      "fontSize": 23
+    },
+    {
+      "id": "chicken_fry_quarter",
+      "label": "Fry Quarter",
+      "x": 327,
+      "y": 1494,
+      "fontSize": 23
+    },
+    {
+      "id": "chicken_fry_half",
+      "label": "Fry Half",
+      "x": 470,
+      "y": 1493,
+      "fontSize": 23
+    },
+    {
+      "id": "chicken_wings_5pc",
+      "label": "Wings 5pc",
+      "x": 327,
+      "y": 1550,
+      "fontSize": 23
+    },
+    {
+      "id": "side_rice_peas_s",
+      "label": "Rice & Peas S",
+      "x": 848,
+      "y": 1712,
+      "fontSize": 23
+    },
+    {
+      "id": "side_rice_peas_m",
+      "label": "Rice & Peas M",
+      "x": 938,
+      "y": 1712,
+      "fontSize": 23
+    },
+    {
+      "id": "side_rice_peas_l",
+      "label": "Rice & Peas L",
+      "x": 1027,
+      "y": 1716,
+      "fontSize": 23
+    },
+    {
+      "id": "side_cabbage_s",
+      "label": "Cabbage S",
+      "x": 847,
+      "y": 1400,
+      "fontSize": 23
+    },
+    {
+      "id": "side_cabbage_m",
+      "label": "Cabbage M",
+      "x": 937,
+      "y": 1400,
+      "fontSize": 23
+    },
+    {
+      "id": "side_cabbage_l",
+      "label": "Cabbage L",
+      "x": 1027,
+      "y": 1400,
+      "fontSize": 23
+    },
+    {
+      "id": "side_white_rice_s",
+      "label": "White Rice S",
+      "x": 847,
+      "y": 1443,
+      "fontSize": 23
+    },
+    {
+      "id": "side_white_rice_m",
+      "label": "White Rice M",
+      "x": 937,
+      "y": 1443,
+      "fontSize": 23
+    },
+    {
+      "id": "side_white_rice_l",
+      "label": "White Rice L",
+      "x": 1027,
+      "y": 1443,
+      "fontSize": 23
+    },
+    {
+      "id": "side_mac_cheese_s",
+      "label": "Mac & Cheese S",
+      "x": 847,
+      "y": 1486,
+      "fontSize": 23
+    },
+    {
+      "id": "side_mac_cheese_m",
+      "label": "Mac & Cheese M",
+      "x": 937,
+      "y": 1486,
+      "fontSize": 23
+    },
+    {
+      "id": "side_mac_cheese_l",
+      "label": "Mac & Cheese L",
+      "x": 1027,
+      "y": 1486,
+      "fontSize": 23
+    },
+    {
+      "id": "side_festival_s",
+      "label": "Festival S",
+      "x": 847,
+      "y": 1534,
+      "fontSize": 23
+    },
+    {
+      "id": "side_festival_m",
+      "label": "Festival M",
+      "x": 937,
+      "y": 1534,
+      "fontSize": 23
+    },
+    {
+      "id": "side_festival_l",
+      "label": "Festival L",
+      "x": 1027,
+      "y": 1534,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_plantain_s",
+      "label": "Fried Plantain S",
+      "x": 847,
+      "y": 1574,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_plantain_m",
+      "label": "Fried Plantain M",
+      "x": 937,
+      "y": 1574,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_plantain_l",
+      "label": "Fried Plantain L",
+      "x": 1027,
+      "y": 1574,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_dumplings_s",
+      "label": "Fried Dumplings S",
+      "x": 847,
+      "y": 1622,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_dumplings_m",
+      "label": "Fried Dumplings M",
+      "x": 937,
+      "y": 1622,
+      "fontSize": 23
+    },
+    {
+      "id": "side_fried_dumplings_l",
+      "label": "Fried Dumplings L",
+      "x": 1027,
+      "y": 1622,
+      "fontSize": 23
+    },
+    {
+      "id": "side_pasta_s",
+      "label": "Pasta S",
+      "x": 847,
+      "y": 1674,
+      "fontSize": 23
+    },
+    {
+      "id": "side_pasta_m",
+      "label": "Pasta M",
+      "x": 937,
+      "y": 1674,
+      "fontSize": 23
+    },
+    {
+      "id": "side_pasta_l",
+      "label": "Pasta L",
+      "x": 1027,
+      "y": 1674,
+      "fontSize": 23
+    },
+    {
+      "id": "lbl_entree_s",
+      "label": "S",
+      "type": "label",
+      "x": 346,
+      "y": 336,
+      "fontSize": 20
+    },
+    {
+      "id": "lbl_entree_m",
+      "label": "M",
+      "type": "label",
+      "x": 417,
+      "y": 336,
+      "fontSize": 20
+    },
+    {
+      "id": "lbl_entree_l",
+      "label": "L",
+      "type": "label",
+      "x": 487,
+      "y": 336,
+      "fontSize": 20
+    },
+    {
+      "id": "lbl_chicken_quarter",
+      "label": "Quarter",
+      "type": "label",
+      "x": 335,
+      "y": 1381,
+      "fontSize": 18
+    },
+    {
+      "id": "lbl_chicken_half",
+      "label": "Half",
+      "type": "label",
+      "x": 472,
+      "y": 1381,
+      "fontSize": 18
+    },
+    {
+      "id": "lbl_sides_s",
+      "label": "S",
+      "type": "label",
+      "x": 847,
+      "y": 1366,
+      "fontSize": 16
+    },
+    {
+      "id": "lbl_sides_m",
+      "label": "M",
+      "type": "label",
+      "x": 937,
+      "y": 1366,
+      "fontSize": 16
+    },
+    {
+      "id": "lbl_sides_l",
+      "label": "L",
+      "type": "label",
+      "x": 1027,
+      "y": 1366,
+      "fontSize": 16
+    }
+  ]
+}

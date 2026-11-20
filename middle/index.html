@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>McKenzie's Kitchen — Middle Screen Player</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .wrapper {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 100vh;
+      height: 100vw;
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: center center;
+      background: #000;
+      overflow: hidden;
+    }
+
+    video,
+    #overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    video {
+      object-fit: cover;
+      display: block;
+      z-index: 1;
+    }
+
+    #overlay {
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .price-tag {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      color: #111;
+      font-weight: 900;
+      white-space: nowrap;
+      letter-spacing: -0.03em;
+      text-rendering: geometricPrecision;
+      text-shadow:
+        0 0 1px rgba(255, 255, 255, .6),
+        0 1px 0 rgba(255, 255, 255, .35);
+      font-variant-numeric: tabular-nums lining-nums;
+      line-height: 1;
+    }
+
+    .status {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      z-index: 10;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 12px;
+      opacity: .75;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <video id="player" loop playsinline webkit-playsinline muted preload="auto">
+      <source src="middle_screen.mp4" type="video/mp4">
+    </video>
+    <div id="overlay"></div>
+  </div>
+  <div class="status" id="statusBox">Operate screen ready.</div>
+
+  <script>
+    async function loadOverlayMap() {
+      const res = await fetch('overlay-map-middle.json');
+      if (!res.ok) throw new Error('Failed to load overlay-map.json');
+      return await res.json();
+    }
+
+    const FALLBACK_PRICES = {
+      "middle_curry_chicken_roti": 0,
+      "middle_goat_roti": 0,
+      "middle_oxtail_roti": 0,
+      "middle_jerk_chicken_roti": 0,
+      "middle_vegetable_roti": 0,
+      "middle_roti_skin": 0,
+      "middle_jerk_chicken_mac_s": 0,
+      "middle_jerk_chicken_mac_m": 0,
+      "middle_jerk_chicken_mac_l": 0,
+      "middle_stew_chicken_mac_s": 0,
+      "middle_stew_chicken_mac_m": 0,
+      "middle_stew_chicken_mac_l": 0,
+      "middle_curry_chicken_mac_s": 0,
+      "middle_curry_chicken_mac_m": 0,
+      "middle_curry_chicken_mac_l": 0,
+      "middle_fried_chicken_mac_s": 0,
+      "middle_fried_chicken_mac_m": 0,
+      "middle_fried_chicken_mac_l": 0,
+      "middle_curry_goat_mac_s": 0,
+      "middle_curry_goat_mac_m": 0,
+      "middle_curry_goat_mac_l": 0,
+      "middle_jerk_pork_mac_s": 0,
+      "middle_jerk_pork_mac_m": 0,
+      "middle_jerk_pork_mac_l": 0,
+      "middle_barby_fried_mac_s": 0,
+      "middle_barby_fried_mac_m": 0,
+      "middle_barby_fried_mac_l": 0,
+      "middle_oxtail_mac_s": 0,
+      "middle_oxtail_mac_m": 0,
+      "middle_oxtail_mac_l": 0,
+      "middle_whiting_mac_s": 0,
+      "middle_whiting_mac_m": 0,
+      "middle_whiting_mac_l": 0,
+      "middle_shrimps_mac_s": 0,
+      "middle_shrimps_mac_m": 0,
+      "middle_shrimps_mac_l": 0,
+      "middle_jerk_wings_mac_s": 0,
+      "middle_jerk_wings_mac_m": 0,
+      "middle_jerk_wings_mac_l": 0,
+      "middle_salmon_mac_s": 0,
+      "middle_salmon_mac_m": 0,
+      "middle_salmon_mac_l": 0,
+      "middle_jerk_chicken_pasta": 0,
+      "middle_stew_chicken_pasta": 0,
+      "middle_curry_chicken_pasta": 0,
+      "middle_fried_chicken_pasta": 0,
+      "middle_curry_goat_pasta": 0,
+      "middle_shrimp_pasta": 0,
+      "middle_jerk_pork_pasta": 0,
+      "middle_glazed_salmon_pasta": 0,
+      "middle_oxtail_pasta": 0,
+      "middle_jerk_pork_pasta_2": 0,
+      "middle_snapper_pasta": 0
+    };
+
+    // ← Set to your Render URL
+    const API_BASE = window.MENU_API_BASE || "https://mckcode.onrender.com";
+    const SCREEN_ID = window.MENU_SCREEN_ID || "mckenzie-middle";
+    const POLL_MS = window.MENU_POLL_MS || 5000;
+
+    const statusBox = document.getElementById("statusBox");
+    function setStatus(t) { statusBox.textContent = t; }
+
+    function formatPrice(value) {
+      const n = Number(value);
+      if (Number.isNaN(n)) return String(value ?? "");
+      return Number.isInteger(n) ? String(n) : n.toFixed(2);
+    }
+
+    function extractPrices(payload) {
+      if (!payload || typeof payload !== "object") return {};
+      if (payload.prices && typeof payload.prices === "object") return payload.prices;
+      if (payload.data && payload.data.prices && typeof payload.data.prices === "object") return payload.data.prices;
+      return payload;
+    }
+
+    async function loadPrices() {
+      try {
+        const res = await fetch(`${API_BASE}/screens/${encodeURIComponent(SCREEN_ID)}/prices`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`price fetch failed (${res.status})`);
+        setStatus("");
+        return extractPrices(await res.json());
+      } catch (e) {
+        setStatus("Using fallback prices. API unavailable.");
+        return FALLBACK_PRICES;
+      }
+    }
+
+    // Cache the map so we only fetch it once
+    let OVERLAY_MAP_CACHE = null;
+
+    async function getMap() {
+      if (OVERLAY_MAP_CACHE) return OVERLAY_MAP_CACHE;
+      OVERLAY_MAP_CACHE = await loadOverlayMap();
+      return OVERLAY_MAP_CACHE;
+    }
+
+    // Build overlay DOM once from the map
+    async function buildOverlay() {
+      const map = await getMap();
+      const overlay = document.getElementById("overlay");
+      overlay.innerHTML = "";
+      for (const item of map.items) {
+        const el = document.createElement("div");
+        el.className = "price-tag";
+        el.dataset.id = item.id;
+        el.dataset.type = item.type || "price";
+        el.style.left = `${(item.x / map.canvas.width) * 100}%`;
+        el.style.top = `${(item.y / map.canvas.height) * 100}%`;
+        el.style.fontSize = `${item.fontSize || 16}px`;
+        // Label items render immediately, price items wait for API
+        el.textContent = item.type === "label" ? item.label : "";
+        if (item.type === "label") {
+          el.style.color = "#f5c518";
+          el.style.textDecoration = "underline";
+        }
+        overlay.appendChild(el);
+      }
+    }
+
+    // Only update price text — no DOM rebuild, no flicker
+    async function updatePrices() {
+      const prices = await loadPrices();
+      const overlay = document.getElementById("overlay");
+      for (const el of overlay.querySelectorAll(".price-tag")) {
+        if (el.dataset.type === "label") continue; // labels are static
+        el.textContent = formatPrice(prices[el.dataset.id] ?? "");
+      }
+    }
+
+    async function init() {
+      await buildOverlay();
+      await updatePrices();
+      setInterval(updatePrices, POLL_MS);
+    }
+
+    const v = document.getElementById("player");
+    function tryPlay() {
+      v.play().catch(() => {
+        document.addEventListener("click", () => v.play(), { once: true });
+        document.addEventListener("touchstart", () => v.play(), { once: true });
+      });
+    }
+    v.addEventListener("loadeddata", tryPlay);
+    v.addEventListener("canplaythrough", tryPlay);
+    setTimeout(tryPlay, 2000);
+
+    init();
+  </script>
+</body>
+
+</html>

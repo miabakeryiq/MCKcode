@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overlay Editor — Operate Screen</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #111;
+      color: #f2f2f2;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 16px;
+      border-right: 1px solid rgba(255,255,255,.12);
+      overflow: auto;
+      background: #171717;
+    }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    .hint, .status {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.06);
+      margin-bottom: 14px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin: 14px 0; }
+    button {
+      border: 0;
+      background: #f5c518;
+      color: #111;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.secondary {
+      background:#2a2a2a; color:#fff; border:1px solid rgba(255,255,255,.15);
+    }
+    .field { margin: 10px 0; }
+    .field label {
+      display:block; margin-bottom:4px; font-size:12px; opacity:.75;
+      text-transform: uppercase; letter-spacing:.04em;
+    }
+    .field input {
+      width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
+      background:#0f0f0f; color:#fff;
+    }
+    .list {
+      margin-top: 12px;
+      display: grid;
+      gap: 6px;
+      max-height: 40vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .item {
+      padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.04);
+      cursor:pointer; border:1px solid transparent;
+    }
+    .item.active { border-color:#f5c518; background:rgba(245,197,24,.12); }
+    .item.selected { border-color:rgba(245,197,24,.5); background:rgba(245,197,24,.07); }
+    .micro { font-size:12px; opacity:.75; margin-top: 8px; }
+    main {
+      padding:16px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:100vh;
+    }
+    .stage {
+      position: relative;
+      width: min(760px, calc(100vw - 420px));
+      aspect-ratio: 1080 / 1780;
+      background: #000;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .frame-img {
+      position: absolute;
+      inset: 0; width: 100%; height: 100%;
+      object-fit: fill;
+      display: block;
+      z-index: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+    }
+    .overlay-item {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      min-width: 8px;
+      text-align: center;
+      background: transparent;
+      color: #111;
+      border: 0;
+      cursor: grab;
+      user-select: none;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .overlay-item.active {
+      outline: 1.5px dashed rgba(245,197,24,.95);
+      z-index: 6;
+    }
+    .overlay-item.selected {
+      outline: 1.5px solid rgba(245,197,24,.6);
+      z-index: 5;
+    }
+    .overlay-item.active.selected {
+      outline: 2px solid #f5c518;
+      z-index: 6;
+    }
+    textarea {
+      width:100%; min-height:220px; margin-top:14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.15); background:#0f0f0f; color:#e8e8e8;
+      padding:12px; font-family: ui-monospace, monospace; font-size:12px;
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>Operate Editor</h1>
+    <div class="hint">
+      <strong>Click</strong> to select one item.<br>
+      <strong>Shift+Click</strong> to add/remove from selection.<br>
+      <strong>Drag</strong> any selected item to move the whole group.<br>
+      Arrow keys nudge 1px · Shift+Arrow = 10px.
+    </div>
+ 
+    <div class="toolbar">
+      <button id="copyBtn">Copy JSON</button>
+      <button class="secondary" id="downloadBtn">Download JSON</button>
+      <button class="secondary" id="resetBtn">Reset</button>
+    </div>
+ 
+    <div class="status" id="saveStatus">Loading…</div>
+ 
+    <div class="field">
+      <label>Selected</label>
+      <input id="selectedId" readonly />
+    </div>
+    <div class="field">
+      <label>X</label>
+      <input id="posX" type="number" step="1" />
+    </div>
+    <div class="field">
+      <label>Y</label>
+      <input id="posY" type="number" step="1" />
+    </div>
+    <div class="field">
+      <label>Font size (px) — applies to all selected</label>
+      <input id="fontSize" type="number" step="1" min="8" max="120" />
+    </div>
+ 
+    <div class="list" id="list"></div>
+    <textarea id="exportBox" spellcheck="false"></textarea>
+  </aside>
+ 
+  <main>
+    <div class="stage" id="stage">
+      <img src="./screen2.png" alt="" class="frame-img" />
+      <div id="overlay"></div>
+    </div>
+  </main>
+ 
+  <script>
+    const DEFAULT_MAP = {"canvas":{"width":1080,"height":1780},"items":[{"id":"jerk_wings_s","label":"Jerk Wings S","x":300,"y":400,"fontSize":23},{"id":"jerk_wings_m","label":"Jerk Wings M","x":370,"y":400,"fontSize":23},{"id":"jerk_wings_l","label":"Jerk Wings L","x":440,"y":400,"fontSize":23},{"id":"jerk_pork_s","label":"Jerk Pork S","x":300,"y":445,"fontSize":23},{"id":"jerk_pork_m","label":"Jerk Pork M","x":370,"y":445,"fontSize":23},{"id":"jerk_pork_l","label":"Jerk Pork L","x":440,"y":445,"fontSize":23},{"id":"stew_chicken_s","label":"Stew Chicken S","x":300,"y":490,"fontSize":23},{"id":"stew_chicken_m","label":"Stew Chicken M","x":370,"y":490,"fontSize":23},{"id":"stew_chicken_l","label":"Stew Chicken L","x":440,"y":490,"fontSize":23},{"id":"fried_chicken_s","label":"Fried Chicken S","x":300,"y":535,"fontSize":23},{"id":"fried_chicken_m","label":"Fried Chicken M","x":370,"y":535,"fontSize":23},{"id":"fried_chicken_l","label":"Fried Chicken L","x":440,"y":535,"fontSize":23},{"id":"escovitch_chicken_s","label":"Escovitch Chicken S","x":300,"y":580,"fontSize":23},{"id":"escovitch_chicken_m","label":"Escovitch Chicken M","x":370,"y":580,"fontSize":23},{"id":"escovitch_chicken_l","label":"Escovitch Chicken L","x":440,"y":580,"fontSize":23},{"id":"jerk_chicken_s","label":"Jerk Chicken S","x":300,"y":625,"fontSize":23},{"id":"jerk_chicken_m","label":"Jerk Chicken M","x":370,"y":625,"fontSize":23},{"id":"jerk_chicken_l","label":"Jerk Chicken L","x":440,"y":625,"fontSize":23},{"id":"curry_chicken_s","label":"Curry Chicken S","x":300,"y":670,"fontSize":23},{"id":"curry_chicken_m","label":"Curry Chicken M","x":370,"y":670,"fontSize":23},{"id":"curry_chicken_l","label":"Curry Chicken L","x":440,"y":670,"fontSize":23},{"id":"stew_peas_s","label":"Stew Peas S","x":300,"y":715,"fontSize":23},{"id":"stew_peas_m","label":"Stew Peas M","x":370,"y":715,"fontSize":23},{"id":"stew_peas_l","label":"Stew Peas L","x":440,"y":715,"fontSize":23},{"id":"escovitch_whiting_s","label":"Escovitch Whiting S","x":300,"y":760,"fontSize":23},{"id":"escovitch_whiting_m","label":"Escovitch Whiting M","x":370,"y":760,"fontSize":23},{"id":"escovitch_whiting_l","label":"Escovitch Whiting L","x":440,"y":760,"fontSize":23},{"id":"curry_goat_s","label":"Curry Goat S","x":300,"y":805,"fontSize":23},{"id":"curry_goat_m","label":"Curry Goat M","x":370,"y":805,"fontSize":23},{"id":"curry_goat_l","label":"Curry Goat L","x":440,"y":805,"fontSize":23},{"id":"oxtail_s","label":"Oxtail S","x":300,"y":850,"fontSize":23},{"id":"oxtail_m","label":"Oxtail M","x":370,"y":850,"fontSize":23},{"id":"oxtail_l","label":"Oxtail L","x":440,"y":850,"fontSize":23},{"id":"glazed_salmon_s","label":"Glazed Salmon S","x":300,"y":940,"fontSize":23},{"id":"glazed_salmon_m","label":"Glazed Salmon M","x":370,"y":940,"fontSize":23},{"id":"glazed_salmon_l","label":"Glazed Salmon L","x":440,"y":940,"fontSize":23},{"id":"snapper_l","label":"Snapper L","x":440,"y":985,"fontSize":23},{"id":"chicken_jerk_quarter","label":"Jerk Quarter","x":200,"y":1100,"fontSize":23},{"id":"chicken_jerk_half","label":"Jerk Half","x":290,"y":1100,"fontSize":23},{"id":"chicken_fry_quarter","label":"Fry Quarter","x":200,"y":1150,"fontSize":23},{"id":"chicken_fry_half","label":"Fry Half","x":290,"y":1150,"fontSize":23},{"id":"chicken_wings_5pc","label":"Wings 5pc","x":200,"y":1200,"fontSize":23},{"id":"side_rice_peas_s","label":"Rice & Peas S","x":650,"y":1055,"fontSize":23},{"id":"side_rice_peas_m","label":"Rice & Peas M","x":740,"y":1055,"fontSize":23},{"id":"side_rice_peas_l","label":"Rice & Peas L","x":830,"y":1055,"fontSize":23},{"id":"side_cabbage_s","label":"Cabbage S","x":650,"y":1100,"fontSize":23},{"id":"side_cabbage_m","label":"Cabbage M","x":740,"y":1100,"fontSize":23},{"id":"side_cabbage_l","label":"Cabbage L","x":830,"y":1100,"fontSize":23},{"id":"side_white_rice_s","label":"White Rice S","x":650,"y":1150,"fontSize":23},{"id":"side_white_rice_m","label":"White Rice M","x":740,"y":1150,"fontSize":23},{"id":"side_white_rice_l","label":"White Rice L","x":830,"y":1150,"fontSize":23},{"id":"side_mac_cheese_s","label":"Mac & Cheese S","x":650,"y":1200,"fontSize":23},{"id":"side_mac_cheese_m","label":"Mac & Cheese M","x":740,"y":1200,"fontSize":23},{"id":"side_mac_cheese_l","label":"Mac & Cheese L","x":830,"y":1200,"fontSize":23},{"id":"side_festival_s","label":"Festival S","x":650,"y":1250,"fontSize":23},{"id":"side_festival_m","label":"Festival M","x":740,"y":1250,"fontSize":23},{"id":"side_festival_l","label":"Festival L","x":830,"y":1250,"fontSize":23},{"id":"side_fried_plantain_s","label":"Fried Plantain S","x":650,"y":1300,"fontSize":23},{"id":"side_fried_plantain_m","label":"Fried Plantain M","x":740,"y":1300,"fontSize":23},{"id":"side_fried_plantain_l","label":"Fried Plantain L","x":830,"y":1300,"fontSize":23},{"id":"side_fried_dumplings_s","label":"Fried Dumplings S","x":650,"y":1350,"fontSize":23},{"id":"side_fried_dumplings_m","label":"Fried Dumplings M","x":740,"y":1350,"fontSize":23},{"id":"side_fried_dumplings_l","label":"Fried Dumplings L","x":830,"y":1350,"fontSize":23},{"id":"side_pasta_s","label":"Pasta S","x":650,"y":1400,"fontSize":23},{"id":"side_pasta_m","label":"Pasta M","x":740,"y":1400,"fontSize":23},{"id":"side_pasta_l","label":"Pasta L","x":830,"y":1400,"fontSize":23},{"id":"lbl_entree_s","label":"S","type":"label","x":310,"y":360,"fontSize":20},{"id":"lbl_entree_m","label":"M","type":"label","x":375,"y":360,"fontSize":20},{"id":"lbl_entree_l","label":"L","type":"label","x":445,"y":360,"fontSize":20},{"id":"lbl_chicken_quarter","label":"Quarter","type":"label","x":200,"y":1070,"fontSize":18},{"id":"lbl_chicken_half","label":"Half","type":"label","x":290,"y":1070,"fontSize":18},{"id":"lbl_sides_s","label":"S","type":"label","x":650,"y":1070,"fontSize":20},{"id":"lbl_sides_m","label":"M","type":"label","x":740,"y":1070,"fontSize":20},{"id":"lbl_sides_l","label":"L","type":"label","x":830,"y":1070,"fontSize":20}]};
+ 
+    const PRICE_VALUES = {"jerk_wings_s":0,"jerk_wings_m":0,"jerk_wings_l":0,"stew_chicken_s":0,"stew_chicken_m":0,"stew_chicken_l":0,"fried_chicken_s":0,"fried_chicken_m":0,"fried_chicken_l":0,"escovitch_chicken_s":0,"escovitch_chicken_m":0,"escovitch_chicken_l":0,"jerk_chicken_s":0,"jerk_chicken_m":0,"jerk_chicken_l":0,"curry_chicken_s":0,"curry_chicken_m":0,"curry_chicken_l":0,"stew_peas_s":0,"stew_peas_m":0,"stew_peas_l":0,"escovitch_whiting_s":0,"escovitch_whiting_m":0,"escovitch_whiting_l":0,"curry_goat_s":0,"curry_goat_m":0,"curry_goat_l":0,"oxtail_s":0,"oxtail_m":0,"oxtail_l":0,"glazed_salmon_s":0,"glazed_salmon_m":0,"glazed_salmon_l":0,"snapper_l":0,"jerk_pork_s":0,"jerk_pork_m":0,"jerk_pork_l":0,"chicken_jerk_quarter":0,"chicken_jerk_half":0,"chicken_fry_quarter":0,"chicken_fry_half":0,"chicken_wings_5pc":0,"side_rice_peas_s":0,"side_rice_peas_m":0,"side_rice_peas_l":0,"side_cabbage_s":0,"side_cabbage_m":0,"side_cabbage_l":0,"side_white_rice_s":0,"side_white_rice_m":0,"side_white_rice_l":0,"side_mac_cheese_s":0,"side_mac_cheese_m":0,"side_mac_cheese_l":0,"side_festival_s":0,"side_festival_m":0,"side_festival_l":0,"side_fried_plantain_s":0,"side_fried_plantain_m":0,"side_fried_plantain_l":0,"side_fried_dumplings_s":0,"side_fried_dumplings_m":0,"side_fried_dumplings_l":0,"side_pasta_s":0,"side_pasta_m":0,"side_pasta_l":0};
+ 
+    const STORAGE_KEY = "mckenzie_overlay_editor_operate_v9";
+    const CW = 1080, CH = 1780;
+ 
+    const stage    = document.getElementById("stage");
+    const overlay  = document.getElementById("overlay");
+    const list     = document.getElementById("list");
+    const exportBox = document.getElementById("exportBox");
+    const selectedIdEl = document.getElementById("selectedId");
+    const posXEl   = document.getElementById("posX");
+    const posYEl   = document.getElementById("posY");
+    const fontSizeEl = document.getElementById("fontSize");
+    const saveStatus = document.getElementById("saveStatus");
+ 
+    function clone(o) { return JSON.parse(JSON.stringify(o)); }
+    function setStatus(t) { saveStatus.textContent = t; }
+ 
+    function loadMap() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(DEFAULT_MAP);
+        const p = JSON.parse(raw);
+        return (!p || !Array.isArray(p.items)) ? clone(DEFAULT_MAP) : p;
+      } catch(e) { return clone(DEFAULT_MAP); }
+    }
+ 
+    const state = {
+      map: loadMap(),
+      activeId: null,
+      selected: new Set()
+    };
+ 
+    function getItem(id) { return state.map.items.find(i => i.id === id); }
+ 
+    function formatPrice(v) {
+      const n = Number(v);
+      if (Number.isNaN(n)) return String(v ?? "");
+      return Number.isInteger(n) ? String(n) : n.toFixed(2);
+    }
+ 
+    // ── RENDER ────────────────────────────────────────────────────────────────
+    function renderStage() {
+      overlay.innerHTML = "";
+      for (const item of state.map.items) {
+        const isActive   = item.id === state.activeId;
+        const isSelected = state.selected.has(item.id);
+        const el = document.createElement("div");
+        let cls = "overlay-item";
+        if (isSelected) cls += " selected";
+        if (isActive)   cls += " active";
+        el.className = cls;
+        el.dataset.id = item.id;
+        el.style.left = (item.x / CW * 100) + "%";
+        el.style.top  = (item.y / CH * 100) + "%";
+        el.style.fontSize = (item.fontSize || 16) + "px";
+        el.textContent = item.type === "label" ? item.label : formatPrice(PRICE_VALUES[item.id] ?? "");
+        // Style label items differently so they're easy to identify
+        if (item.type === "label") {
+          el.style.color = "#f5c518";
+          el.style.fontWeight = "900";
+          el.style.textDecoration = "underline";
+        } else {
+          el.style.color = "#111";
+        }
+        el.addEventListener("click", e => {
+          e.stopPropagation();
+          if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            if (state.selected.has(item.id)) state.selected.delete(item.id);
+            else state.selected.add(item.id);
+          } else {
+            state.selected.clear();
+            state.selected.add(item.id);
+          }
+          state.activeId = item.id;
+          renderStage();
+        });
+        attachDrag(el, item.id);
+        overlay.appendChild(el);
+      }
+      renderList();
+      renderExport();
+      syncInputs();
+      queueSave();
+    }
+ 
+    // ── DRAG — delta-based so group moves together ─────────────────────────
+    function attachDrag(el, id) {
+      let dragging = false;
+      let startX, startY;           // canvas coords at pointerdown
+      let origins = {};             // snapshot of all selected positions
+ 
+      el.addEventListener("pointerdown", e => {
+        e.stopPropagation();
+        // Update selection state
+        if (!state.selected.has(id)) {
+          state.selected.clear();
+          state.selected.add(id);
+          state.activeId = id;
+          // Update CSS classes without rebuilding DOM
+          for (const el2 of overlay.querySelectorAll(".overlay-item")) {
+            el2.classList.remove("selected", "active");
+            if (state.selected.has(el2.dataset.id)) el2.classList.add("selected");
+            if (el2.dataset.id === state.activeId) el2.classList.add("active");
+          }
+          renderList(); syncInputs();
+        } else {
+          state.activeId = id;
+        }
+        dragging = true;
+        el.setPointerCapture(e.pointerId);
+ 
+        // Snapshot canvas position of pointer and all selected items
+        const rect = overlay.getBoundingClientRect();
+        startX = ((e.clientX - rect.left) / rect.width)  * CW;
+        startY = ((e.clientY - rect.top)  / rect.height) * CH;
+        origins = {};
+        for (const sid of state.selected) {
+          const item = getItem(sid);
+          if (item) origins[sid] = { x: item.x, y: item.y };
+        }
+        // NO renderStage() here — would destroy pointer capture
+      });
+ 
+      el.addEventListener("pointermove", e => {
+        if (!dragging) return;
+        const rect = overlay.getBoundingClientRect();
+        const cx = ((e.clientX - rect.left) / rect.width)  * CW;
+        const cy = ((e.clientY - rect.top)  / rect.height) * CH;
+        const dx = cx - startX;
+        const dy = cy - startY;
+ 
+        for (const sid of state.selected) {
+          const item = getItem(sid);
+          if (!item || !origins[sid]) continue;
+          item.x = Math.max(0, Math.min(CW, Math.round(origins[sid].x + dx)));
+          item.y = Math.max(0, Math.min(CH, Math.round(origins[sid].y + dy)));
+        }
+ 
+        // Lightweight DOM update — no full rebuild during drag
+        for (const el2 of overlay.querySelectorAll(".overlay-item")) {
+          const item = getItem(el2.dataset.id);
+          if (item) {
+            el2.style.left = (item.x / CW * 100) + "%";
+            el2.style.top  = (item.y / CH * 100) + "%";
+          }
+        }
+        syncInputs();
+        queueSave();
+      });
+ 
+      el.addEventListener("pointerup", () => {
+        if (dragging) justDragged = true;
+        dragging = false;
+        renderStage();
+      });
+      el.addEventListener("pointercancel", () => { dragging = false; });
+    }
+ 
+    // ── KEYBOARD ──────────────────────────────────────────────────────────────
+    document.addEventListener("keydown", e => {
+      if (!state.selected.size) return;
+      const step = e.shiftKey ? 10 : 1;
+      let dx = 0, dy = 0;
+      if      (e.key === "ArrowLeft")  dx = -step;
+      else if (e.key === "ArrowRight") dx =  step;
+      else if (e.key === "ArrowUp")    dy = -step;
+      else if (e.key === "ArrowDown")  dy =  step;
+      else return;
+      for (const sid of state.selected) {
+        const item = getItem(sid);
+        if (!item) continue;
+        item.x = Math.max(0, Math.min(CW, item.x + dx));
+        item.y = Math.max(0, Math.min(CH, item.y + dy));
+      }
+      renderStage();
+      e.preventDefault();
+    });
+ 
+    // ── INPUTS ────────────────────────────────────────────────────────────────
+    function syncInputs() {
+      const item = getItem(state.activeId);
+      const count = state.selected.size;
+      selectedIdEl.value = count > 1 ? `${count} items selected` : (item?.id || "");
+      posXEl.value       = count > 1 ? "" : (item?.x ?? "");
+      posYEl.value       = count > 1 ? "" : (item?.y ?? "");
+      fontSizeEl.value   = item?.fontSize ?? 16;
+    }
+ 
+    posXEl.addEventListener("input", () => {
+      const item = getItem(state.activeId); if (!item) return;
+      const n = Number(posXEl.value); if (isNaN(n)) return;
+      item.x = Math.max(0, Math.min(CW, Math.round(n)));
+      renderStage();
+    });
+    posYEl.addEventListener("input", () => {
+      const item = getItem(state.activeId); if (!item) return;
+      const n = Number(posYEl.value); if (isNaN(n)) return;
+      item.y = Math.max(0, Math.min(CH, Math.round(n)));
+      renderStage();
+    });
+    fontSizeEl.addEventListener("input", () => {
+      const n = Number(fontSizeEl.value); if (isNaN(n)) return;
+      const size = Math.max(8, Math.min(120, Math.round(n)));
+      for (const sid of state.selected) {
+        const item = getItem(sid);
+        if (item) item.fontSize = size;
+      }
+      renderStage();
+    });
+ 
+    // ── LIST ──────────────────────────────────────────────────────────────────
+    function renderList() {
+      list.innerHTML = "";
+      for (const item of state.map.items) {
+        const el = document.createElement("div");
+        const isActive   = item.id === state.activeId;
+        const isSelected = state.selected.has(item.id);
+        let cls = "item";
+        if (isSelected) cls += " selected";
+        if (isActive)   cls += " active";
+        el.className = cls;
+        el.textContent = item.label;
+        el.onclick = (e) => {
+          if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            if (state.selected.has(item.id)) state.selected.delete(item.id);
+            else state.selected.add(item.id);
+          } else {
+            state.selected.clear();
+            state.selected.add(item.id);
+          }
+          state.activeId = item.id;
+          renderStage();
+        };
+        list.appendChild(el);
+      }
+    }
+ 
+    // ── EXPORT / SAVE ─────────────────────────────────────────────────────────
+    function renderExport() { exportBox.value = JSON.stringify(state.map, null, 2); }
+ 
+    let saveTimer = null;
+    function queueSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.map));
+        setStatus("Autosaved.");
+      }, 150);
+    }
+ 
+    exportBox.addEventListener("change", () => {
+      try {
+        const p = JSON.parse(exportBox.value);
+        if (!p || !Array.isArray(p.items)) throw new Error("bad");
+        state.map = p;
+        state.selected.clear();
+        state.activeId = state.map.items[0]?.id ?? null;
+        state.selected.add(state.activeId);
+        renderStage(); setStatus("Loaded from JSON box.");
+      } catch(e) { setStatus("Invalid JSON."); }
+    });
+ 
+    document.getElementById("copyBtn").onclick = async () => {
+      renderExport();
+      await navigator.clipboard.writeText(exportBox.value);
+      setStatus("JSON copied.");
+    };
+    document.getElementById("downloadBtn").onclick = () => {
+      renderExport();
+      const blob = new Blob([exportBox.value], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "overlay-map-operate.json";
+      a.click(); URL.revokeObjectURL(a.href);
+      setStatus("Downloaded overlay-map-operate.json");
+    };
+    document.getElementById("resetBtn").onclick = () => {
+      localStorage.removeItem(STORAGE_KEY);
+      state.map = clone(DEFAULT_MAP);
+      state.selected.clear();
+      state.activeId = state.map.items[0]?.id ?? null;
+      state.selected.add(state.activeId);
+      renderStage(); setStatus("Reset to default map.");
+    };
+ 
+    // Prevent overlay click from clearing selection right after a drag
+    let justDragged = false;
+    overlay.addEventListener("click", () => {
+      if (justDragged) { justDragged = false; return; }
+      state.activeId = null;
+      state.selected.clear();
+      renderStage();
+    });
+ 
+    window.addEventListener("resize", renderStage);
+ 
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    setStatus(localStorage.getItem(STORAGE_KEY) ? "Loaded autosaved map." : "Using default map.");
+    state.activeId = state.map.items[0]?.id ?? null;
+    state.selected.add(state.activeId);
+    renderStage();
+  </script>
+</body>
+</html>
